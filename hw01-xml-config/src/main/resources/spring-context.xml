@@ -11,5 +11,18 @@
             <util:constant static-field="java.lang.System.out"/>
         </constructor-arg>
     </bean>
+    <bean id="testRunnerService" class="ru.otus.hw.service.TestRunnerServiceImpl">
+        <constructor-arg ref="testService"/>
+    </bean>
+    <bean id="testFileNameProvider" class="ru.otus.hw.config.TestFileNameProviderImpl"/>
+    <bean id="resourceProvider" class="ru.otus.hw.dao.ResourceProviderImpl"/>
+    <bean id="questionDao" class="ru.otus.hw.dao.CsvQuestionDao">
+        <constructor-arg ref="testFileNameProvider"/>
+        <constructor-arg ref="resourceProvider"/>
+    </bean>
+    <bean id="testService" class="ru.otus.hw.service.TestServiceImpl">
+        <constructor-arg ref="ioService"/>
+        <constructor-arg ref="questionDao"/>
+    </bean>
 
 </beans>

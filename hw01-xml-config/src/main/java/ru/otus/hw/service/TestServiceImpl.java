@@ -20,8 +20,8 @@ public class TestServiceImpl implements TestService {
         ioService.printLine("");
         ioService.printFormattedLine("Please answer the questions below%n");
 
-        int questionNumber = 1;
         char answerLetter;
+        int questionNumber = 1;
 
         for (Question question : questions) {
             ioService.printFormattedLine("%s. %s", questionNumber++, question.text());

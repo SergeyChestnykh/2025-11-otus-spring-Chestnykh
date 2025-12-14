@@ -17,12 +17,9 @@
     <bean id="appProperties" class="ru.otus.hw.config.AppProperties">
         <constructor-arg value="questions.csv"/>
     </bean>
-    <bean id="testFileNameProvider" class="ru.otus.hw.config.TestFileNameProviderImpl">
-        <constructor-arg ref="appProperties"/>
-    </bean>
     <bean id="resourceProvider" class="ru.otus.hw.dao.ResourceProviderImpl"/>
     <bean id="questionDao" class="ru.otus.hw.dao.CsvQuestionDao">
-        <constructor-arg ref="testFileNameProvider"/>
+        <constructor-arg ref="appProperties"/>
         <constructor-arg ref="resourceProvider"/>
     </bean>
     <bean id="testService" class="ru.otus.hw.service.TestServiceImpl">

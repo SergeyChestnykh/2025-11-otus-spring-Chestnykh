@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import ru.otus.hw.dao.QuestionDao;
 import ru.otus.hw.domain.Answer;
 import ru.otus.hw.domain.Question;
+import ru.otus.hw.exceptions.QuestionReadException;
 
 import java.util.List;
 
@@ -15,21 +16,37 @@ public class TestServiceImpl implements TestService {
     private final QuestionDao questionDao;
 
     @Override
-    public void executeTest() {
+    public void executeTest() throws QuestionReadException {
         List<Question> questions = questionDao.findAll();
         ioService.printLine("");
         ioService.printFormattedLine("Please answer the questions below%n");
+        printQuestions(questions);
+    }
 
-        char answerLetter;
+    private void printQuestions(List<Question> questions) {
         int questionNumber = 1;
-
         for (Question question : questions) {
-            ioService.printFormattedLine("%s. %s", questionNumber++, question.text());
-            answerLetter = 'a';
-            for (Answer answer : question.answers()) {
-                ioService.printFormattedLine("   %s) %s", answerLetter++, answer.text());
-            }
-            ioService.printLine("");
+            ioService.printLine(questionToString(question, questionNumber++));
         }
+    }
+
+    private String questionToString(Question question, int questionNumber) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(questionNumber)
+                .append(". ")
+                .append(question.text())
+                .append(System.lineSeparator());
+
+        int answerNumber = 1;
+        for (Answer answer : question.answers()) {
+            sb.append("   ")
+                    .append(answerNumber++)
+                    .append(") ")
+                    .append(answer.text())
+                    .append(System.lineSeparator());
+        }
+
+        return sb.toString();
     }
 }

@@ -32,15 +32,15 @@ class TestServiceImplTest {
 
     private static final String ANSWER_FORMAT = "   %s) %s";
 
-    List<Answer> stubAnswers = List.of(
+    private static final List<Answer> stubAnswers = List.of(
             new Answer("Certainly. The red UFO is from Mars. And green is from Venus", false),
             new Answer("Absolutely not", false),
             new Answer("Science doesn't know this yet", true)
     );
 
-    Question stubQuestion = new Question("Is there life on Mars?", stubAnswers);
+    private static final Question stubQuestion = new Question("Is there life on Mars?", stubAnswers);
 
-    List<Question> stubQuestions = List.of(stubQuestion);
+    private static final List<Question> stubQuestions = List.of(stubQuestion);
 
     @BeforeEach
     void setUp() {

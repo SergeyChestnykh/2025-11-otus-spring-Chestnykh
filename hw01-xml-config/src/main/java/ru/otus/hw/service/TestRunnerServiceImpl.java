@@ -8,12 +8,14 @@ public class TestRunnerServiceImpl implements TestRunnerService {
 
     private final TestService testService;
 
+    private final IOService ioService;
+
     @Override
     public void run() {
         try {
             testService.executeTest();
         } catch (QuestionReadException e) {
-            System.out.println("Невозможно прочитать список вопросов из файла!");
+            ioService.printLine("Unable to read question list from file!");
         }
     }
 }

@@ -9,6 +9,10 @@ import ru.otus.hw.domain.Student;
 import ru.otus.hw.domain.TestResult;
 import ru.otus.hw.exceptions.InvalidQuestionFormatException;
 
+import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+
 @Service
 @RequiredArgsConstructor
 public class TestServiceImpl implements TestService {
@@ -24,6 +28,12 @@ public class TestServiceImpl implements TestService {
         var questions = questionDao.findAll();
         var testResult = new TestResult(student);
 
+        runTest(questions, testResult::applyAnswer);
+
+        return testResult;
+    }
+
+    private void runTest(List<Question> questions, BiConsumer<Question, Boolean> applyAnswer) {
         int questionNumber = 1;
         for (var question : questions) {
             var testQuestion = questionToTestQuestion(question, questionNumber++);
@@ -33,9 +43,8 @@ public class TestServiceImpl implements TestService {
             int userAnswerNumber = getUserAnswerNumber(testQuestion);
 
             var isAnswerValid = userAnswerNumber == testQuestion.correctAnswerNumber;
-            testResult.applyAnswer(question, isAnswerValid);
+            applyAnswer.accept(question, isAnswerValid);
         }
-        return testResult;
     }
 
     private int getUserAnswerNumber(TestQuestion testQuestion) {

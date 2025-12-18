@@ -82,7 +82,7 @@ class CsvQuestionDaoTest {
 
 
     @Test
-    @DisplayName("выбрасывать RuntimeException при IOException")
+    @DisplayName(" выбрасывать QuestionReadException при IOException")
     void shouldThrowExceptionOnIOException() {
         var dao = new CsvQuestionDao(testFileNameProvider, failingResourceProvider);
 

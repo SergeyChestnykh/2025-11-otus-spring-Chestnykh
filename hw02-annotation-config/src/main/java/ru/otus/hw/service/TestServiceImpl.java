@@ -9,13 +9,22 @@ import ru.otus.hw.domain.Student;
 import ru.otus.hw.domain.TestResult;
 import ru.otus.hw.exceptions.InvalidQuestionFormatException;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 
 @Service
 @RequiredArgsConstructor
 public class TestServiceImpl implements TestService {
+
+    private static final String ERROR_PROMPT = "Wrong input!!!";
+
+    private static final String ANSWER_PROMPT_FORMAT = "Write number from %d to %d";
+
+    private static final String QUESTION_FORMAT = "%d. %s";
+
+    private static final String ANSWER_FORMAT = "\t%d) %s";
 
     private final IOService ioService;
 
@@ -38,7 +47,7 @@ public class TestServiceImpl implements TestService {
         for (var question : questions) {
             var testQuestion = questionToTestQuestion(question, questionNumber++);
 
-            ioService.printLine(testQuestion.question);
+            printQuestion(testQuestion);
 
             int userAnswerNumber = getUserAnswerNumber(testQuestion);
 
@@ -47,18 +56,25 @@ public class TestServiceImpl implements TestService {
         }
     }
 
+    private void printQuestion(TestQuestion testQuestion) {
+        ioService.printFormattedLine(QUESTION_FORMAT, testQuestion.questionNumber, testQuestion.questionText);
+        testQuestion.orderedAnswers.forEach((answerNumber, answerText) ->
+                ioService.printFormattedLine(ANSWER_FORMAT, answerNumber, answerText)
+        );
+        ioService.printLine("");
+    }
+
     private int getUserAnswerNumber(TestQuestion testQuestion) {
         var answerPrompt = String.format(
-                "Write number from %s to %s",
+                ANSWER_PROMPT_FORMAT,
                 testQuestion.minAnswerNumber,
                 testQuestion.maxAnswerNumber
         );
-        var errorPrompt = "Wrong input!!!";
         return ioService.readIntForRangeWithPrompt(
                 testQuestion.minAnswerNumber,
                 testQuestion.maxAnswerNumber,
                 answerPrompt,
-                errorPrompt
+                ERROR_PROMPT
         );
     }
 
@@ -66,34 +82,29 @@ public class TestServiceImpl implements TestService {
         final int minAnswerNumber = 1;
         final int maxAnswerNumber = question.answers().size();
 
-        StringBuilder sb = new StringBuilder();
-        sb.append(getFormattedQuestion(question.text(), questionNumber));
+        var orderedAnswers = new LinkedHashMap<Integer, String>();
         int correctAnswerNumber = -1;
         int answerNumber = minAnswerNumber;
         for (Answer answer : question.answers()) {
             if (answer.isCorrect()) {
                 correctAnswerNumber = answerNumber;
             }
-            sb.append(getFormattedAnswer(answer.text(), answerNumber++));
+            orderedAnswers.put(answerNumber++, answer.text());
         }
 
         if (correctAnswerNumber == -1) {
             throw new InvalidQuestionFormatException("No correct answer in question.");
         }
 
-        return new TestQuestion(sb.toString(), minAnswerNumber, maxAnswerNumber, correctAnswerNumber);
-    }
-
-    private String getFormattedQuestion(String question, int questionNumber) {
-        return String.format("%d. %s\n", questionNumber, question);
-    }
-
-    private String getFormattedAnswer(String answer, int answerNumber) {
-        return String.format("\t%d) %s\n", answerNumber, answer);
+        return new TestQuestion(
+                question.text(), questionNumber, orderedAnswers, minAnswerNumber, maxAnswerNumber, correctAnswerNumber
+        );
     }
 
     private record TestQuestion(
-            String question,
+            String questionText,
+            int questionNumber,
+            Map<Integer, String> orderedAnswers,
             int minAnswerNumber,
             int maxAnswerNumber,
             int correctAnswerNumber

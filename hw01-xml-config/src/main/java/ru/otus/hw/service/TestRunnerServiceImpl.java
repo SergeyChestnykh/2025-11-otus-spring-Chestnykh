@@ -15,7 +15,7 @@ public class TestRunnerServiceImpl implements TestRunnerService {
         try {
             testService.executeTest();
         } catch (QuestionReadException e) {
-            ioService.printLine("Unable to read question list from file!");
+            ioService.printLine("Unable to read questions!");
         }
     }
 }

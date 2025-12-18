@@ -24,7 +24,7 @@ public class TestRunnerServiceImpl implements TestRunnerService {
             var testResult = testService.executeTestFor(student);
             resultService.showResult(testResult);
         } catch (QuestionReadException e) {
-            ioService.printLine("Unable to read question list from file!");
+            ioService.printLine("Unable to read questions!");
         } catch (InvalidQuestionFormatException e) {
             ioService.printLine("Invalid question format!");
         }

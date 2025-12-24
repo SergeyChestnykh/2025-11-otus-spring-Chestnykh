@@ -31,7 +31,7 @@ public class TestServiceImpl implements TestService {
 
     private static final String ANSWER_FORMAT = "\t%d) %s";
 
-    public static final int INITIAL_ANSWER_NUMBER = 1;
+    private static final int INITIAL_ANSWER_NUMBER = 1;
 
     private final IOService ioService;
 

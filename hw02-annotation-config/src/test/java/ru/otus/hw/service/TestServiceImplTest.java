@@ -31,10 +31,6 @@ class TestServiceImplTest {
 
     private static final String HEADER = "Please answer the questions below%n";
 
-    private static final String QUESTION_FORMAT = "%d. %s";
-
-    private static final String ANSWER_FORMAT = "\t%d) %s";
-
     public static final String ERROR_PROMPT = "Wrong input!!!";
 
     private static final String ANSWER_PROMPT_FORMAT = "Write number from %d to %d";
@@ -60,6 +56,12 @@ class TestServiceImplTest {
     @DisplayName(" вызывать методы ioService и questionDao с нужными параметрами в нужном порядке и ничего более. (executeTest)")
     void shouldPrintQuestionAndAnswersInOrder() {
         TestServiceImpl testService = new TestServiceImpl(ioService, questionDao);
+        var expectedQuestionString = """
+                1. Is there life on Mars?
+                \t1) Certainly. The red UFO is from Mars. And green is from Venus
+                \t2) Absolutely not
+                \t3) Science doesn't know this yet
+                """;
 
         testService.executeTestFor(student);
 
@@ -69,13 +71,11 @@ class TestServiceImplTest {
         InOrder inOrder = inOrder(ioService);
         inOrder.verify(ioService).printLine("");
         inOrder.verify(ioService).printFormattedLine(HEADER);
-        inOrder.verify(ioService).printFormattedLine(QUESTION_FORMAT, 1, stubQuestion.text());
-        inOrder.verify(ioService).printFormattedLine(ANSWER_FORMAT, 1, stubAnswers.get(0).text());
-        inOrder.verify(ioService).printFormattedLine(ANSWER_FORMAT, 2, stubAnswers.get(1).text());
-        inOrder.verify(ioService).printFormattedLine(ANSWER_FORMAT, 3, stubAnswers.get(2).text());
-        inOrder.verify(ioService).printLine("");
+        inOrder.verify(ioService).printLine(expectedQuestionString);
+
         var answerPrompt = String.format(ANSWER_PROMPT_FORMAT, 1, 3);
         inOrder.verify(ioService).readIntForRangeWithPrompt(1, 3, answerPrompt, ERROR_PROMPT);
+
         inOrder.verifyNoMoreInteractions();
     }
 
@@ -96,12 +96,12 @@ class TestServiceImplTest {
 
         testService.executeTestFor(student);
 
-        verify(ioService).printFormattedLine(any(String.class), any(), eq("Question 1"));
-        verify(ioService).printFormattedLine(any(String.class), any(), eq("Question 2"));
+        verify(ioService).printLine(contains("Question 1"));
+        verify(ioService).printLine(contains("Question 2"));
 
-        verify(ioService).printFormattedLine(any(String.class), any(), eq("Answer 1"));
-        verify(ioService).printFormattedLine(any(String.class), any(), eq("Answer 2"));
-        verify(ioService).printFormattedLine(any(String.class), any(), eq("Answer 3"));
+        verify(ioService).printLine(contains("Answer 1"));
+        verify(ioService).printLine(contains("Answer 2"));
+        verify(ioService).printLine(contains("Answer 3"));
     }
 
     @Test

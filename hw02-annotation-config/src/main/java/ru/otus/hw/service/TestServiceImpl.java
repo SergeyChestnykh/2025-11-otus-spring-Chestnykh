@@ -9,14 +9,20 @@ import ru.otus.hw.domain.Student;
 import ru.otus.hw.domain.TestResult;
 import ru.otus.hw.exceptions.InvalidQuestionFormatException;
 
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 
 @Service
 @RequiredArgsConstructor
 public class TestServiceImpl implements TestService {
+    /*
+    * По Вашему указанию избавился от класса TestQuestion и вынес логику преобразования в отдельные функции.
+    * Однако я все же считаю что данный класс был необходим и удобен, т.к. в текущей реализации логика назначения
+    * номеров ответов для вывода, получения правильного варианта из данных и диапазона ответов разнесена по разным
+    * функциям, что могло бы быть решено за один проход цикла. Если же сейчас решить данные вопросы в одной функции,
+    * то будет нарушен принцип единственной ответственности. Плюс использование String.format(...) при наличии
+    * ioService.printFormattedLine кажется излишним.*/
 
     private static final String ERROR_PROMPT = "Wrong input!!!";
 
@@ -25,6 +31,8 @@ public class TestServiceImpl implements TestService {
     private static final String QUESTION_FORMAT = "%d. %s";
 
     private static final String ANSWER_FORMAT = "\t%d) %s";
+
+    public static final int INITIAL_ANSWER_NUMBER = 1;
 
     private final IOService ioService;
 
@@ -45,69 +53,69 @@ public class TestServiceImpl implements TestService {
     private void runTest(List<Question> questions, BiConsumer<Question, Boolean> applyAnswer) {
         int questionNumber = 1;
         for (var question : questions) {
-            var testQuestion = questionToTestQuestion(question, questionNumber++);
+            String questionString = convertQuestionToString(question, questionNumber++);
 
-            printQuestion(testQuestion);
+            ioService.printLine(questionString);
 
-            int userAnswerNumber = getUserAnswerNumber(testQuestion);
+            int userAnswerNumber = getUserAnswerNumber(question);
 
-            var isAnswerValid = userAnswerNumber == testQuestion.correctAnswerNumber;
+            var isAnswerValid = userAnswerNumber == getCorrectAnswerNumber(question);
             applyAnswer.accept(question, isAnswerValid);
         }
     }
 
-    private void printQuestion(TestQuestion testQuestion) {
-        ioService.printFormattedLine(QUESTION_FORMAT, testQuestion.questionNumber, testQuestion.questionText);
-        testQuestion.orderedAnswers.forEach((answerNumber, answerText) ->
-                ioService.printFormattedLine(ANSWER_FORMAT, answerNumber, answerText)
-        );
-        ioService.printLine("");
-    }
-
-    private int getUserAnswerNumber(TestQuestion testQuestion) {
+    private int getUserAnswerNumber(Question question) {
         var answerPrompt = String.format(
                 ANSWER_PROMPT_FORMAT,
-                testQuestion.minAnswerNumber,
-                testQuestion.maxAnswerNumber
+                INITIAL_ANSWER_NUMBER,
+                getMaxAnswerNumber(question)
         );
         return ioService.readIntForRangeWithPrompt(
-                testQuestion.minAnswerNumber,
-                testQuestion.maxAnswerNumber,
+                INITIAL_ANSWER_NUMBER,
+                getMaxAnswerNumber(question),
                 answerPrompt,
                 ERROR_PROMPT
         );
     }
 
-    private TestQuestion questionToTestQuestion(Question question, int questionNumber) {
-        final int minAnswerNumber = 1;
-        final int maxAnswerNumber = question.answers().size();
+    private String convertQuestionToString(Question question, int questionNumber) {
+        var stringBuilder = new StringBuilder();
 
-        var orderedAnswers = new LinkedHashMap<Integer, String>();
+        String formattedQuestionText = String.format(QUESTION_FORMAT, questionNumber, question.text());
+        stringBuilder.append(formattedQuestionText);
+        stringBuilder.append("\n");
+
+        AtomicInteger answerNumber = new AtomicInteger(INITIAL_ANSWER_NUMBER);
+        question.answers().stream()
+                .map(answer -> String.format(ANSWER_FORMAT, answerNumber.getAndIncrement(), answer.text()))
+                .forEach(formattedAnswer -> {
+                            stringBuilder.append(formattedAnswer);
+                            stringBuilder.append("\n");
+                        }
+                );
+
+        return stringBuilder.toString();
+    }
+
+    private int getCorrectAnswerNumber(Question question) {
         int correctAnswerNumber = -1;
-        int answerNumber = minAnswerNumber;
+        int answerNumber = INITIAL_ANSWER_NUMBER;
         for (Answer answer : question.answers()) {
             if (answer.isCorrect()) {
                 correctAnswerNumber = answerNumber;
+                break;
             }
-            orderedAnswers.put(answerNumber++, answer.text());
+            answerNumber++;
         }
 
         if (correctAnswerNumber == -1) {
             throw new InvalidQuestionFormatException("No correct answer in question.");
         }
 
-        return new TestQuestion(
-                question.text(), questionNumber, orderedAnswers, minAnswerNumber, maxAnswerNumber, correctAnswerNumber
-        );
+        return answerNumber;
     }
 
-    private record TestQuestion(
-            String questionText,
-            int questionNumber,
-            Map<Integer, String> orderedAnswers,
-            int minAnswerNumber,
-            int maxAnswerNumber,
-            int correctAnswerNumber
-    ) {
+    private int getMaxAnswerNumber(Question question) {
+        return question.answers().size() - 1 + INITIAL_ANSWER_NUMBER;
     }
 }

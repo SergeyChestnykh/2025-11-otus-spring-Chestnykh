@@ -11,18 +11,17 @@ import ru.otus.hw.exceptions.InvalidQuestionFormatException;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiConsumer;
 
 @Service
 @RequiredArgsConstructor
 public class TestServiceImpl implements TestService {
     /*
-    * По Вашему указанию избавился от класса TestQuestion и вынес логику преобразования в отдельные функции.
-    * Однако я все же считаю что данный класс был необходим и удобен, т.к. в текущей реализации логика назначения
-    * номеров ответов для вывода, получения правильного варианта из данных и диапазона ответов разнесена по разным
-    * функциям, что могло бы быть решено за один проход цикла. Если же сейчас решить данные вопросы в одной функции,
-    * то будет нарушен принцип единственной ответственности. Плюс использование String.format(...) при наличии
-    * ioService.printFormattedLine кажется излишним.*/
+     * По Вашему указанию избавился от класса TestQuestion и вынес логику преобразования в отдельные функции.
+     * Однако я все же считаю что данный класс был необходим и удобен, т.к. в текущей реализации логика назначения
+     * номеров ответов для вывода, получения правильного варианта из данных и диапазона ответов разнесена по разным
+     * функциям, что могло бы быть решено за один проход цикла. Если же сейчас решить данные вопросы в одной функции,
+     * то будет нарушен принцип единственной ответственности. Плюс использование String.format(...) при наличии
+     * ioService.printFormattedLine кажется излишним.*/
 
     private static final String ERROR_PROMPT = "Wrong input!!!";
 
@@ -43,14 +42,12 @@ public class TestServiceImpl implements TestService {
         ioService.printLine("");
         ioService.printFormattedLine("Please answer the questions below%n");
         var questions = questionDao.findAll();
-        var testResult = new TestResult(student);
 
-        runTest(questions, testResult::applyAnswer);
-
-        return testResult;
+        return runTest(questions, student);
     }
 
-    private void runTest(List<Question> questions, BiConsumer<Question, Boolean> applyAnswer) {
+    private TestResult runTest(List<Question> questions, Student student) {
+        TestResult testResult = new TestResult(student);
         int questionNumber = 1;
         for (var question : questions) {
             String questionString = convertQuestionToString(question, questionNumber++);
@@ -60,8 +57,9 @@ public class TestServiceImpl implements TestService {
             int userAnswerNumber = getUserAnswerNumber(question);
 
             var isAnswerValid = userAnswerNumber == getCorrectAnswerNumber(question);
-            applyAnswer.accept(question, isAnswerValid);
+            testResult.applyAnswer(question, isAnswerValid);
         }
+        return testResult;
     }
 
     private int getUserAnswerNumber(Question question) {

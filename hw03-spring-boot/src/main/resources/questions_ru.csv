@@ -2,3 +2,5 @@
 Есть ли жизнь на Марсе?;Это науке пока не известно%true|Конечно. Красные (НЛО) это с Марса. А зеленые (НЛО) с Венеры%false|Точно нет%false
 Как нужно загружать ресурс из jar в Java?;ClassLoader#geResourceAsStream или ClassPathResource#getInputStream%true|ClassLoader#geResource#getFile + FileReader%false|Wingardium Leviosa%false
 Какой предпочтительный способ реакции на исключения?;@SneakyThrow%false|e.printStackTrace()%false|Проброс дальше с предварительным оборачиванием в бизнес-исключение (например, QuestionReadException)%true|Игнорирование исключения%false
+Как правильно создать неизменяемый список в Java?;List.of(...)%true|new ArrayList<>()%false|Collections.synchronizedList(new ArrayList<>())%false
+Какое утверждение о Java Streams верно?;Потоки не хранят данные и вычисляются лениво%true|Потоки всегда изменяют исходную коллекцию%false|Параллельные потоки всегда ускоряют ваш код%false

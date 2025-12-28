@@ -113,7 +113,7 @@ public class TestServiceImpl implements TestService {
             throw new InvalidQuestionFormatException("No correct answer in question.");
         }
 
-        return answerNumber;
+        return correctAnswerNumber;
     }
 
     private int getMaxAnswerNumber(Question question) {

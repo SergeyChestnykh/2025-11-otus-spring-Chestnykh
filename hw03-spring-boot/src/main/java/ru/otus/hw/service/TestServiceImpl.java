@@ -3,120 +3,65 @@ package ru.otus.hw.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.otus.hw.dao.QuestionDao;
-import ru.otus.hw.domain.Answer;
 import ru.otus.hw.domain.Question;
 import ru.otus.hw.domain.Student;
 import ru.otus.hw.domain.TestResult;
-import ru.otus.hw.exceptions.InvalidQuestionFormatException;
 
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
 public class TestServiceImpl implements TestService {
 
-    private static final int INITIAL_ANSWER_NUMBER = 1;
+    private static final String ERROR_PROMPT = "Wrong input!!!";
 
-    private final LocalizedIOService localizedIOService;
+    private static final String ANSWER_PROMPT_FORMAT = "Write number from %d to %d";
+
+    private final LocalizedIOService ioService;
 
     private final QuestionDao questionDao;
 
-    private final LocalizedMessagesServiceImpl localizedMessagesService;
-
     @Override
     public TestResult executeTestFor(Student student) {
-        localizedIOService.printLine("");
-        localizedIOService.printLineLocalized("TestService.answer.the.questions");
-        localizedIOService.printLine("");
-
+        ioService.printLine("");
+        ioService.printFormattedLine("Please answer the questions below%n");
         var questions = questionDao.findAll();
 
-        return runTest(questions, student);
-    }
-
-    private TestResult runTest(List<Question> questions, Student student) {
         TestResult testResult = new TestResult(student);
-        int questionNumber = 1;
-        for (var question : questions) {
-            String questionString = convertQuestionToString(question, questionNumber++);
-
-            localizedIOService.printLine(questionString);
-
-            int userAnswerNumber = getUserAnswerNumber(question);
-
-            var isAnswerValid = userAnswerNumber == getCorrectAnswerNumber(question);
+        for (int i = 0; i < questions.size(); i++) {
+            var question = questions.get(i);
+            var isAnswerValid = askQuestion(question, i + 1);
             testResult.applyAnswer(question, isAnswerValid);
         }
         return testResult;
     }
 
-    private int getUserAnswerNumber(Question question) {
-        var answerPrompt = localizedMessagesService.getMessage(
-                "TestService.write.number.from.to",
-                INITIAL_ANSWER_NUMBER,
-                getMaxAnswerNumber(question)
-        );
+    private boolean askQuestion(Question question, int questionNumber) {
+        var answers = question.answers();
+        var questionString = convertQuestionToString(question, questionNumber);
+        ioService.printLine(questionString);
 
-        return localizedIOService.readIntForRangeWithPrompt(
-                INITIAL_ANSWER_NUMBER,
-                getMaxAnswerNumber(question),
+        int userAnswerNumber = getUserAnswerNumber(question);
+        return answers.get(userAnswerNumber - 1).isCorrect();
+    }
+
+    private int getUserAnswerNumber(Question question) {
+        var answerPrompt = String.format(ANSWER_PROMPT_FORMAT, 1, question.answers().size());
+        return ioService.readIntForRangeWithPrompt(
+                1,
+                question.answers().size(),
                 answerPrompt,
-                localizedMessagesService.getMessage("TestService.wrong.input")
+                ERROR_PROMPT
         );
     }
 
     private String convertQuestionToString(Question question, int questionNumber) {
-        return getFormattedQuestion(question, questionNumber) + "\n" + getFormattedAnswers(question);
-    }
+        var formattedQuestionText = String.format("%d. %s", questionNumber, question.text());
+        var formattedQuestionsAsString = IntStream.range(0, question.answers().size())
+                .mapToObj(i -> String.format("\t%d) %s", i + 1, question.answers().get(i).text()))
+                .collect(Collectors.joining(System.lineSeparator()));
 
-    private String getFormattedQuestion(Question question, int questionNumber) {
-        return localizedMessagesService.getMessage(
-                "TestService.question.format",
-                questionNumber,
-                question.text()
-        );
-    }
-
-    private String getFormattedAnswers(Question question) {
-        StringBuilder stringBuilder = new StringBuilder();
-        AtomicInteger answerNumber = new AtomicInteger(INITIAL_ANSWER_NUMBER);
-        question.answers().stream()
-                .map(answer ->
-                        localizedMessagesService.getMessage(
-                                "TestService.answer.format",
-                                answerNumber.getAndIncrement(),
-                                answer.text()
-                        )
-                )
-                .forEach(formattedAnswer -> {
-                            stringBuilder.append("\t");
-                            stringBuilder.append(formattedAnswer);
-                            stringBuilder.append("\n");
-                        }
-                );
-        return stringBuilder.toString();
-    }
-
-    private int getCorrectAnswerNumber(Question question) {
-        int correctAnswerNumber = -1;
-        int answerNumber = INITIAL_ANSWER_NUMBER;
-        for (Answer answer : question.answers()) {
-            if (answer.isCorrect()) {
-                correctAnswerNumber = answerNumber;
-                break;
-            }
-            answerNumber++;
-        }
-
-        if (correctAnswerNumber == -1) {
-            throw new InvalidQuestionFormatException("No correct answer in question.");
-        }
-
-        return correctAnswerNumber;
-    }
-
-    private int getMaxAnswerNumber(Question question) {
-        return question.answers().size() - 1 + INITIAL_ANSWER_NUMBER;
+        return String.format("%s%n%s", formattedQuestionText, formattedQuestionsAsString);
     }
 }

@@ -2,7 +2,6 @@ package ru.otus.hw.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.otus.hw.exceptions.InvalidQuestionFormatException;
 import ru.otus.hw.exceptions.QuestionReadException;
 
 @Service
@@ -25,8 +24,6 @@ public class TestRunnerServiceImpl implements TestRunnerService {
             resultService.showResult(testResult);
         } catch (QuestionReadException e) {
             ioService.printLineLocalized("TestRunnerService.unable.read.questions");
-        } catch (InvalidQuestionFormatException e) {
-            ioService.printLineLocalized("TestRunnerService.invalid.question.format");
         }
     }
 }

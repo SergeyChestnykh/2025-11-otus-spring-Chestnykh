@@ -14,18 +14,14 @@ import java.util.stream.IntStream;
 @RequiredArgsConstructor
 public class TestServiceImpl implements TestService {
 
-    private static final String ERROR_PROMPT = "Wrong input!!!";
-
-    private static final String ANSWER_PROMPT_FORMAT = "Write number from %d to %d";
-
-    private final LocalizedIOService ioService;
+    private final LocalizedIOService localizedIOService;
 
     private final QuestionDao questionDao;
 
     @Override
     public TestResult executeTestFor(Student student) {
-        ioService.printLine("");
-        ioService.printFormattedLine("Please answer the questions below%n");
+        localizedIOService.printLine("");
+        localizedIOService.printLineLocalized("TestService.answer.the.questions");
         var questions = questionDao.findAll();
 
         TestResult testResult = new TestResult(student);
@@ -40,19 +36,23 @@ public class TestServiceImpl implements TestService {
     private boolean askQuestion(Question question, int questionNumber) {
         var answers = question.answers();
         var questionString = convertQuestionToString(question, questionNumber);
-        ioService.printLine(questionString);
+        localizedIOService.printLine(questionString);
 
         int userAnswerNumber = getUserAnswerNumber(question);
         return answers.get(userAnswerNumber - 1).isCorrect();
     }
 
     private int getUserAnswerNumber(Question question) {
-        var answerPrompt = String.format(ANSWER_PROMPT_FORMAT, 1, question.answers().size());
-        return ioService.readIntForRangeWithPrompt(
+        var answerPrompt = localizedIOService.getMessage(
+                "TestService.write.number.from.to",
+                1, question.answers().size()
+        );
+        String errorMessage = localizedIOService.getMessage("TestService.wrong.input");
+        return localizedIOService.readIntForRangeWithPrompt(
                 1,
                 question.answers().size(),
                 answerPrompt,
-                ERROR_PROMPT
+                errorMessage
         );
     }
 

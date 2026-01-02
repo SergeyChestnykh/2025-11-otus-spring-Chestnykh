@@ -1,0 +1,4 @@
+# Stub questions for tests (skip this line)
+Question 1?;Answer 1%true|Answer 2%false|Answer 3%false
+Question 2?;Yes%false|No%true
+Question 3?;Option A%false|Option B%false|Option C%true

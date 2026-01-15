@@ -72,7 +72,10 @@ class TestServiceImplTest {
 
         ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
         inOrder.verify(ioService).printLine(captor.capture());
-        assertEquals(expectedQuestionString, captor.getValue());
+        assertEquals(
+                expectedQuestionString.replace("\r\n", "\n"),
+                captor.getValue().replace("\r\n", "\n")
+        );
 
         inOrder.verify(ioService).readIntForRangeWithPrompt(1, 3, prompt, errorMessage);
 

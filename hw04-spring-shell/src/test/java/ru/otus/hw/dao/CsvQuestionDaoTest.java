@@ -2,9 +2,11 @@ package ru.otus.hw.dao;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.test.context.SpringBootTest;
+import ru.otus.hw.config.AppProperties;
 import ru.otus.hw.config.TestFileNameProvider;
 import ru.otus.hw.domain.Answer;
 import ru.otus.hw.domain.Question;
@@ -16,11 +18,15 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.given;
 
 @DisplayName("Методы dao должны ")
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest(classes = CsvQuestionDao.class)
+@EnableConfigurationProperties(AppProperties.class)
 class CsvQuestionDaoTest {
 
     @Mock
     private TestFileNameProvider testFileNameProvider;
+
+    @Autowired
+    private QuestionDao dao;
 
     private static final List<Question> testQuestions = List.of(
             new Question("Question 1?", List.of(
@@ -42,8 +48,6 @@ class CsvQuestionDaoTest {
     @Test
     @DisplayName(" возвращать все вопросы из файла в заданном порядке")
     void shouldReturnAllQuestionsFromFile() {
-        given(testFileNameProvider.getTestFileName()).willReturn("questions.csv");
-        var dao = new CsvQuestionDao(testFileNameProvider);
 
         List<Question> questions = dao.findAll();
 

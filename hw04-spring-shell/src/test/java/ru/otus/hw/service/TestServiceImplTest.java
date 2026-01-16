@@ -3,11 +3,11 @@ package ru.otus.hw.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import ru.otus.hw.dao.CsvQuestionDao;
 import ru.otus.hw.dao.QuestionDao;
 import ru.otus.hw.domain.Answer;
 import ru.otus.hw.domain.Question;
@@ -20,13 +20,13 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @DisplayName("Методы сервиса должны ")
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest(classes = {CsvQuestionDao.class, LocalizedIOServiceImpl.class})
 class TestServiceImplTest {
 
-    @Mock
+    @MockitoBean
     private QuestionDao questionDao;
 
-    @Mock
+    @MockitoBean
     private LocalizedIOService ioService;
 
     private static final List<Answer> stubAnswers = List.of(

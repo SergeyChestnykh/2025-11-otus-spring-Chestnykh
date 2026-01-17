@@ -1,7 +1,6 @@
 package ru.otus.hw.repositories;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -15,10 +14,7 @@ import ru.otus.hw.models.Genre;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Repository
@@ -31,21 +27,29 @@ public class JdbcBookRepository implements BookRepository {
 
     @Override
     public Optional<Book> findById(long id) {
-        var genres = genreRepository.findAll();
-        var relations = getAllGenreRelations();
-        return jdbcOperations
-                .query(
-                        """
-                                    SELECT b.id AS book_id, b.title, a.id AS author_id, a.full_name AS author_name
-                                    FROM books b
-                                    JOIN authors a ON b.author_id = a.id
-                                    WHERE b.id = :id
-                                """,
-                        Map.of("id", id),
-                        new BookRowMapper()
-                ).stream()
-                .peek(book -> mergeBooksInfo(List.of(book), genres, relations))
-                .findFirst();
+
+        String sql = """
+                    SELECT 
+                        b.id AS book_id,
+                        b.title,
+                        a.id AS author_id,
+                        a.full_name AS author_name,
+                        g.id AS genre_id,
+                        g.name AS genre_name
+                    FROM books b
+                    JOIN authors a ON b.author_id = a.id
+                    LEFT JOIN books_genres bg ON b.id = bg.book_id
+                    LEFT JOIN genres g ON bg.genre_id = g.id
+                    WHERE b.id = :id
+                """;
+
+        Book book = jdbcOperations.query(
+                sql,
+                Map.of("id", id),
+                new BookResultSetExtractor()
+        );
+
+        return Optional.ofNullable(book);
     }
 
     @Override
@@ -211,10 +215,46 @@ public class JdbcBookRepository implements BookRepository {
     private static class BookResultSetExtractor implements ResultSetExtractor<Book> {
 
         @Override
-        public Book extractData(ResultSet rs) throws SQLException, DataAccessException {
-            return null;
+        public Book extractData(ResultSet rs) throws SQLException {
+
+            Book book = null;
+            List<Genre> genres = new ArrayList<>();
+
+            while (rs.next()) {
+
+                if (book == null) {
+
+                    Author author = new Author(
+                            rs.getLong("author_id"),
+                            rs.getString("author_name")
+                    );
+
+                    book = new Book(
+                            rs.getLong("book_id"),
+                            rs.getString("title"),
+                            author,
+                            new ArrayList<>()
+                    );
+                }
+
+                long genreId = rs.getLong("genre_id");
+
+                if (!rs.wasNull()) {
+                    genres.add(new Genre(
+                            genreId,
+                            rs.getString("genre_name")
+                    ));
+                }
+            }
+
+            if (book != null) {
+                book.setGenres(genres);
+            }
+
+            return book;
         }
     }
+
 
     private record BookGenreRelation(long bookId, long genreId) {
     }

@@ -14,7 +14,11 @@ import ru.otus.hw.models.Genre;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Repository
@@ -209,8 +213,6 @@ public class JdbcBookRepository implements BookRepository {
         }
     }
 
-    // Использовать для findById
-    @SuppressWarnings("ClassCanBeRecord")
     @RequiredArgsConstructor
     private static class BookResultSetExtractor implements ResultSetExtractor<Book> {
 
@@ -223,28 +225,10 @@ public class JdbcBookRepository implements BookRepository {
             while (rs.next()) {
 
                 if (book == null) {
-
-                    Author author = new Author(
-                            rs.getLong("author_id"),
-                            rs.getString("author_name")
-                    );
-
-                    book = new Book(
-                            rs.getLong("book_id"),
-                            rs.getString("title"),
-                            author,
-                            new ArrayList<>()
-                    );
+                    book = mapBook(rs);
                 }
 
-                long genreId = rs.getLong("genre_id");
-
-                if (!rs.wasNull()) {
-                    genres.add(new Genre(
-                            genreId,
-                            rs.getString("genre_name")
-                    ));
-                }
+                addGenre(rs, genres);
             }
 
             if (book != null) {
@@ -252,6 +236,33 @@ public class JdbcBookRepository implements BookRepository {
             }
 
             return book;
+        }
+
+        private Book mapBook(ResultSet rs) throws SQLException {
+
+            Author author = new Author(
+                    rs.getLong("author_id"),
+                    rs.getString("author_name")
+            );
+
+            return new Book(
+                    rs.getLong("book_id"),
+                    rs.getString("title"),
+                    author,
+                    new ArrayList<>()
+            );
+        }
+
+        private void addGenre(ResultSet rs, List<Genre> genres) throws SQLException {
+
+            long genreId = rs.getLong("genre_id");
+
+            if (!rs.wasNull()) {
+                genres.add(new Genre(
+                        genreId,
+                        rs.getString("genre_name")
+                ));
+            }
         }
     }
 

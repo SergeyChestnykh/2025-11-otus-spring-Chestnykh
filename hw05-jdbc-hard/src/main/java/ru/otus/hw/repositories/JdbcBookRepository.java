@@ -8,6 +8,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
+import ru.otus.hw.exceptions.EntityNotFoundException;
 import ru.otus.hw.models.Author;
 import ru.otus.hw.models.Book;
 import ru.otus.hw.models.Genre;
@@ -130,9 +131,23 @@ public class JdbcBookRepository implements BookRepository {
     }
 
     private Book update(Book book) {
-        //...
+        String sql = """
+                    UPDATE books
+                    SET title = :title, author_id = :authorId
+                    WHERE id = :id
+                """;
 
-        // Выбросить EntityNotFoundException если не обновлено ни одной записи в БД
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("id", book.getId())
+                .addValue("title", book.getTitle())
+                .addValue("authorId", book.getAuthor().getId());
+
+        int updatedRows = jdbcOperations.update(sql, params);
+
+        if (updatedRows == 0) {
+            throw new EntityNotFoundException("Book with id " + book.getId() + " not found");
+        }
+
         removeGenresRelationsFor(book);
         batchInsertGenresRelationsFor(book);
 
@@ -155,8 +170,14 @@ public class JdbcBookRepository implements BookRepository {
     }
 
     private void removeGenresRelationsFor(Book book) {
-        //...
+        String sql = "DELETE FROM books_genres WHERE book_id = :bookId";
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("bookId", book.getId());
+
+        jdbcOperations.update(sql, params);
     }
+
 
     private static class BookRowMapper implements RowMapper<Book> {
 

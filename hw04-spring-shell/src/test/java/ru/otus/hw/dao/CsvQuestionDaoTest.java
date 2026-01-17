@@ -2,11 +2,9 @@ package ru.otus.hw.dao;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
-import ru.otus.hw.config.AppProperties;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import ru.otus.hw.config.TestFileNameProvider;
 import ru.otus.hw.domain.Answer;
 import ru.otus.hw.domain.Question;
@@ -14,15 +12,17 @@ import ru.otus.hw.exceptions.QuestionReadException;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.when;
 
 @DisplayName("Методы dao должны ")
 @SpringBootTest(classes = CsvQuestionDao.class)
-@EnableConfigurationProperties(AppProperties.class)
 class CsvQuestionDaoTest {
 
-    @Mock
+    @MockitoBean
     private TestFileNameProvider testFileNameProvider;
 
     @Autowired
@@ -49,6 +49,8 @@ class CsvQuestionDaoTest {
     @DisplayName(" возвращать все вопросы из файла в заданном порядке")
     void shouldReturnAllQuestionsFromFile() {
 
+        when(testFileNameProvider.getTestFileName()).thenReturn("questions.csv");
+
         List<Question> questions = dao.findAll();
 
         assertEquals(3, questions.size());
@@ -62,7 +64,6 @@ class CsvQuestionDaoTest {
     @DisplayName(" выбрасывать QuestionReadException при IOException")
     void shouldThrowExceptionOnIOException() {
         given(testFileNameProvider.getTestFileName()).willReturn("wrong_filename.csv");
-        var dao = new CsvQuestionDao(testFileNameProvider);
 
         RuntimeException exception = assertThrows(RuntimeException.class, dao::findAll);
 

@@ -5,9 +5,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import ru.otus.hw.dao.CsvQuestionDao;
 import ru.otus.hw.dao.QuestionDao;
 import ru.otus.hw.domain.Answer;
 import ru.otus.hw.domain.Question;
@@ -17,10 +17,16 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.contains;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @DisplayName("Методы сервиса должны ")
-@SpringBootTest(classes = {CsvQuestionDao.class, LocalizedIOServiceImpl.class})
+@SpringBootTest(classes = {TestServiceImpl.class})
 class TestServiceImplTest {
 
     @MockitoBean
@@ -28,6 +34,9 @@ class TestServiceImplTest {
 
     @MockitoBean
     private LocalizedIOService ioService;
+
+    @Autowired
+    TestServiceImpl testService;
 
     private static final List<Answer> stubAnswers = List.of(
             new Answer("Certainly. The red UFO is from Mars. And green is from Venus", false),
@@ -49,7 +58,6 @@ class TestServiceImplTest {
     @Test
     @DisplayName(" вызывать методы ioService и questionDao с нужными параметрами в нужном порядке и ничего более. (executeTest)")
     void shouldPrintQuestionAndAnswersInOrder() {
-        TestServiceImpl testService = new TestServiceImpl(ioService, questionDao);
         var expectedQuestionString = """
                 1. Is there life on Mars?
                 \t1) Certainly. The red UFO is from Mars. And green is from Venus
@@ -97,8 +105,6 @@ class TestServiceImplTest {
         given(ioService.getMessage(anyString(), any(), any())).willReturn("");
         given(ioService.getMessage(anyString())).willReturn("");
         given(ioService.readIntForRangeWithPrompt(anyInt(), anyInt(), anyString(), anyString())).willReturn(1);
-
-        TestServiceImpl testService = new TestServiceImpl(ioService, questionDao);
 
         testService.executeTestFor(student);
 

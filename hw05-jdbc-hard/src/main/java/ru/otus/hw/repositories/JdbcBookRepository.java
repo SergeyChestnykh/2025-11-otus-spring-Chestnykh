@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
@@ -110,7 +111,17 @@ public class JdbcBookRepository implements BookRepository {
     private Book insert(Book book) {
         var keyHolder = new GeneratedKeyHolder();
 
-        //...
+        String sql = """
+                    INSERT INTO books(title, author_id)
+                    VALUES (:title, :authorId)
+                """;
+
+        Map<String, Object> params = Map.of(
+                "title", book.getTitle(),
+                "authorId", book.getAuthor().getId()
+        );
+
+        jdbcOperations.update(sql, new MapSqlParameterSource(params), keyHolder, new String[]{"id"});
 
         //noinspection DataFlowIssue
         book.setId(keyHolder.getKeyAs(Long.class));
@@ -129,7 +140,18 @@ public class JdbcBookRepository implements BookRepository {
     }
 
     private void batchInsertGenresRelationsFor(Book book) {
-        // Использовать метод batchUpdate
+        MapSqlParameterSource[] batchParams = book.getGenres().stream()
+                .map(genre ->
+                        new MapSqlParameterSource()
+                                .addValue("bookId", book.getId())
+                                .addValue("genreId", genre.getId())
+                )
+                .toArray(MapSqlParameterSource[]::new);
+
+        jdbcOperations.batchUpdate(
+                "INSERT INTO books_genres(book_id, genre_id) VALUES (:bookId, :genreId)",
+                batchParams
+        );
     }
 
     private void removeGenresRelationsFor(Book book) {

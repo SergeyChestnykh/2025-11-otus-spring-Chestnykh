@@ -67,7 +67,13 @@ public class JdbcBookRepository implements BookRepository {
 
     @Override
     public void deleteById(long id) {
-        //...
+        String sql = "DELETE FROM books WHERE id = :id";
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("id", id);
+
+        jdbcOperations.update(sql, params);
+        removeGenresRelationsForBookId(id);
     }
 
     private List<Book> getAllBooksWithoutGenres() {
@@ -174,6 +180,15 @@ public class JdbcBookRepository implements BookRepository {
 
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("bookId", book.getId());
+
+        jdbcOperations.update(sql, params);
+    }
+
+    private void removeGenresRelationsForBookId(long bookId) {
+        String sql = "DELETE FROM books_genres WHERE book_id = :bookId";
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("bookId", bookId);
 
         jdbcOperations.update(sql, params);
     }

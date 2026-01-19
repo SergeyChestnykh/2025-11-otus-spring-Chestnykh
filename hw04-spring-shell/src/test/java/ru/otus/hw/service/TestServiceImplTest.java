@@ -93,6 +93,7 @@ class TestServiceImplTest {
     @Test
     @DisplayName("executeTest обрабатывает все вопросы и все ответы")
     void shouldProcessAllQuestionsAndAnswers() {
+
         Question question1 = new Question("Question 1", List.of(
                 new Answer("Answer 1", true),
                 new Answer("Answer 2", false)

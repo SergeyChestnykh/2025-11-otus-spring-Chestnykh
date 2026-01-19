@@ -17,7 +17,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -42,8 +41,8 @@ public class JdbcBookRepository implements BookRepository {
                         g.name AS genre_name
                     FROM books b
                     JOIN authors a ON b.author_id = a.id
-                    LEFT JOIN books_genres bg ON b.id = bg.book_id
-                    LEFT JOIN genres g ON bg.genre_id = g.id
+                    JOIN books_genres bg ON b.id = bg.book_id
+                    JOIN genres g ON bg.genre_id = g.id
                     WHERE b.id = :id
                 """;
 
@@ -112,15 +111,14 @@ public class JdbcBookRepository implements BookRepository {
         Map<Long, Genre> genreById = genres.stream()
                 .collect(Collectors.toMap(Genre::getId, g -> g));
 
-        booksWithoutGenres.forEach(book -> {
-                    List<Genre> bookGenres = relations.stream()
-                            .filter(relation -> relation.bookId() == book.getId())
-                            .map(relation -> genreById.get(relation.genreId()))
-                            .filter(Objects::nonNull)
-                            .toList();
-                    book.setGenres(bookGenres);
-                }
-        );
+        Map<Long, Book> bookById = booksWithoutGenres.stream()
+                .collect(Collectors.toMap(Book::getId, b -> b));
+
+        relations.forEach(relation -> {
+            Book book = bookById.get(relation.bookId);
+            Genre genre = genreById.get(relation.genreId);
+            book.getGenres().add(genre);
+        });
     }
 
     private Book insert(Book book) {
@@ -208,7 +206,7 @@ public class JdbcBookRepository implements BookRepository {
         public Book mapRow(ResultSet rs, int rowNum) throws SQLException {
             {
                 Author author = new Author(rs.getLong("author_id"), rs.getString("author_name"));
-                return new Book(rs.getLong("book_id"), rs.getString("title"), author, List.of());
+                return new Book(rs.getLong("book_id"), rs.getString("title"), author, new ArrayList<>());
             }
         }
     }

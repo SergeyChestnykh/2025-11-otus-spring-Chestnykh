@@ -58,6 +58,7 @@ class TestServiceImplTest {
     @Test
     @DisplayName(" вызывать методы ioService и questionDao с нужными параметрами в нужном порядке и ничего более. (executeTest)")
     void shouldPrintQuestionAndAnswersInOrder() {
+
         var expectedQuestionString = """
                 1. Is there life on Mars?
                 \t1) Certainly. The red UFO is from Mars. And green is from Venus

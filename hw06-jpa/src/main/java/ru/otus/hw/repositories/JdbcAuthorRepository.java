@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @AllArgsConstructor
-@Repository
+//@Repository
 public class JdbcAuthorRepository implements AuthorRepository {
 
     private final NamedParameterJdbcOperations jdbc;

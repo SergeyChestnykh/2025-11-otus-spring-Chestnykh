@@ -42,7 +42,24 @@ public class JpaBookRepository implements BookRepository {
 
     @Override
     public Book save(Book book) {
-        return em.merge(book);
+        if (book.getId() == 0) {
+            if (book.getAuthor() != null && book.getAuthor().getId() == 0) {
+                em.persist(book.getAuthor());
+            }
+
+            if (book.getGenres() != null) {
+                book.getGenres().forEach(genre -> {
+                    if (genre.getId() == 0) {
+                        em.persist(genre);
+                    }
+                });
+            }
+
+            em.persist(book);
+            return book;
+        } else {
+            return em.merge(book);
+        }
     }
 
     @Override

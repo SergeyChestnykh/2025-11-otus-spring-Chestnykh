@@ -12,3 +12,6 @@ insert into books_genres(book_id, genre_id)
 values (1, 1),   (1, 2),
        (2, 3),   (2, 4),
        (3, 5),   (3, 6);
+
+insert into comments(text, book_id)
+values ('First comment b1', 1), ('Second comment b1', 1), ('First comment b2', 2)

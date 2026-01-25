@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
 
 @DisplayName("Репозиторий на основе Jdbc для работы с книгами ")
 @DataJpaTest
@@ -60,20 +59,9 @@ class JpaBookRepositoryTest {
         var expectedBooks = dbBooks;
 
         assertThat(actualBooks)
-                .extracting(
-                        Book::getTitle,
-                        book -> book.getAuthor().getFullName(),
-                        book -> book.getGenres().stream().map(Genre::getName).toList()
-                )
-                .containsExactlyElementsOf(
-                        expectedBooks.stream()
-                                .map(b -> tuple(
-                                        b.getTitle(),
-                                        b.getAuthor().getFullName(),
-                                        b.getGenres().stream().map(Genre::getName).toList()
-                                ))
-                                .toList()
-                );
+                .usingRecursiveComparison()
+                .ignoringFields("id") // Или любые другие поля, которые не должны сравниваться
+                .isEqualTo(expectedBooks);
     }
 
     @DisplayName("должен сохранять новую книгу")

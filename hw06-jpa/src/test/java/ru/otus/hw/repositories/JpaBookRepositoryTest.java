@@ -7,12 +7,16 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
 import ru.otus.hw.models.Author;
 import ru.otus.hw.models.Book;
+import ru.otus.hw.models.Comment;
 import ru.otus.hw.models.Genre;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,6 +28,9 @@ class JpaBookRepositoryTest {
 
     @Autowired
     private JpaBookRepository jpaBookRepository;
+
+    @Autowired
+    private TestEntityManager em;
 
     private List<Author> dbAuthors;
 
@@ -60,7 +67,7 @@ class JpaBookRepositoryTest {
 
         assertThat(actualBooks)
                 .usingRecursiveComparison()
-                .ignoringFields("id") // Или любые другие поля, которые не должны сравниваться
+                .ignoringFields("id")
                 .isEqualTo(expectedBooks);
     }
 
@@ -87,7 +94,11 @@ class JpaBookRepositoryTest {
     @Test
     void shouldSaveUpdatedBook() {
         var expectedBook = new Book(1L, "BookTitle_10500", dbAuthors.get(2),
-                List.of(dbGenres.get(4), dbGenres.get(5)));
+                List.of(dbGenres.get(4), dbGenres.get(5)),
+                new ArrayList<>()
+        );
+        var expectedComments = List.of(new Comment(0, "New comment", expectedBook));
+        expectedBook.setComments(expectedComments);
 
         assertThat(jpaBookRepository.findById(expectedBook.getId()))
                 .isPresent()
@@ -100,9 +111,20 @@ class JpaBookRepositoryTest {
                 .usingRecursiveComparison()
                 .ignoringExpectedNullFields()
                 .ignoringFields("id")
+                .ignoringFields("comments")
                 .isEqualTo(expectedBook);
 
-        assertThat(jpaBookRepository.findById(returnedBook.getId()))
+        assertThat(returnedBook.getComments())
+                .usingRecursiveComparison()
+                .ignoringFields("book", "book.author", "id")
+                .isEqualTo(expectedComments);
+        em.flush();
+        em.clear();
+        Optional<Book> book = jpaBookRepository.findById(returnedBook.getId());
+        em.flush();
+        em.clear();
+        // не смог разобраться почему в book загружаются комментарии и тест проходит - прошу объяснить
+        assertThat(book)
                 .isPresent()
                 .get()
                 .isEqualTo(returnedBook);
@@ -135,7 +157,23 @@ class JpaBookRepositoryTest {
                         dbAuthors.get(id - 1),
                         dbGenres.subList((id - 1) * 2, (id - 1) * 2 + 2)
                 ))
+                .peek(JpaBookRepositoryTest::setComments)
                 .toList();
+    }
+
+    private static void setComments(Book book) {
+        if (book.getId() == 1) {
+            List<Comment> comments = List.of(
+                    new Comment(1, "First comment b1", book),
+                    new Comment(2, "Second comment b1", book)
+            );
+            book.setComments(comments);
+        } else if (book.getId() == 2) {
+            List<Comment> comments = List.of(
+                    new Comment(3, "First comment b2", book)
+            );
+            book.setComments(comments);
+        }
     }
 
     private static List<Book> getDbBooks() {

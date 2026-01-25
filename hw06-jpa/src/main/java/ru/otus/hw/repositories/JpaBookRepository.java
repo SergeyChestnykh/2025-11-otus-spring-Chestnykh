@@ -21,7 +21,7 @@ public class JpaBookRepository implements BookRepository {
     @Override
     public Optional<Book> findById(long id) {
         var query = em.createQuery(
-                "select b from Book b " +
+                "select distinct b from Book b " +
                         "join fetch b.author " +
                         "where b.id = :id",
                 Book.class
@@ -37,7 +37,11 @@ public class JpaBookRepository implements BookRepository {
 
     @Override
     public List<Book> findAll() {
-        return em.createQuery("select b from Book b join fetch b.author", Book.class).getResultList();
+        return em.createQuery(
+                        "select distinct b from Book b " +
+                                "join fetch b.author "
+                        , Book.class)
+                .getResultList();
     }
 
     @Override

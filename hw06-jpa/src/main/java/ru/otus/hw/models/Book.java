@@ -58,6 +58,7 @@ public class Book {
             inverseJoinColumns = @JoinColumn(name = "genre_id"))
     private List<Genre> genres;
 
+    @Fetch(FetchMode.SUBSELECT)
     @OneToMany(mappedBy = "book", targetEntity = Comment.class, fetch = FetchType.LAZY,
             cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();

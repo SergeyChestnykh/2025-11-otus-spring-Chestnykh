@@ -48,7 +48,9 @@ class JpaBookRepositoryTest {
     @ParameterizedTest
     @MethodSource("getDbBooks")
     void shouldReturnCorrectBookById(Book expectedBook) {
+
         var actualBook = jpaBookRepository.findById(expectedBook.getId());
+
         assertThat(actualBook).isPresent();
         assertThat(actualBook.get().getId()).isEqualTo(expectedBook.getId());
         assertThat(actualBook.get().getTitle()).isEqualTo(expectedBook.getTitle());
@@ -77,8 +79,8 @@ class JpaBookRepositoryTest {
     void shouldSaveNewBook() {
         var expectedBook = new Book(0, "BookTitle_10500", dbAuthors.get(0),
                 List.of(dbGenres.get(0), dbGenres.get(2)));
-        var returnedBook = jpaBookRepository.save(expectedBook);
 
+        var returnedBook = jpaBookRepository.save(expectedBook);
         em.detach(returnedBook);
 
         assertThat(returnedBook).isNotNull()
@@ -88,9 +90,7 @@ class JpaBookRepositoryTest {
                 .ignoringFields("id")
                 .isEqualTo(expectedBook);
 
-        assertThat(jpaBookRepository.findById(returnedBook.getId()))
-                .isPresent()
-                .get()
+        assertThat(em.find(Book.class, expectedBook.getId()))
                 .isEqualTo(returnedBook);
     }
 
@@ -104,11 +104,11 @@ class JpaBookRepositoryTest {
         var expectedComments = List.of(new Comment(0, "New comment", expectedBook));
         expectedBook.setComments(expectedComments);
 
-        Book actual = jpaBookRepository.findById(expectedBook.getId()).orElseThrow();
-        em.detach(actual);
+        Book actual = em.find(Book.class, expectedBook.getId());
+        assertThat(actual).isNotNull();
         assertThat(actual).isNotEqualTo(expectedBook);
+        em.detach(actual);
 
-        em.clear();
         var returnedBook = jpaBookRepository.save(expectedBook);
         // почему если раскомментировать то выводит ошибку
         //Expected :Book(id=1, title=BookTitle_10500)
@@ -124,20 +124,29 @@ class JpaBookRepositoryTest {
 
         assertThat(returnedBook.getComments())
                 .usingRecursiveComparison()
-                .ignoringFields("book", "book.author", "id")
+                .ignoringFields("book", "id")
                 .isEqualTo(expectedComments);
-        Book book = jpaBookRepository.findById(returnedBook.getId()).orElseThrow();
+
+        Book book = em.find(Book.class, expectedBook.getId());
         em.detach(book);
         // не смог разобраться почему в book загружаются комментарии и тест проходит - прошу объяснить
         assertThat(book).isEqualTo(expectedBook);
+        assertThat(book).isNotEqualTo(actual);
+
+        System.out.println("actual:" + actual);
+        System.out.println("expected:" + expectedBook);
+        System.out.println("book:" + book);
     }
 
     @DisplayName("должен удалять книгу по id ")
     @Test
     void shouldDeleteBook() {
-        assertThat(jpaBookRepository.findById(1L)).isPresent();
-        jpaBookRepository.deleteById(1L);
-        assertThat(jpaBookRepository.findById(1L)).isEmpty();
+        var bookId = 1L;
+        assertThat(em.find(Book.class, bookId)).isNotNull();
+
+        jpaBookRepository.deleteById(bookId);
+
+        assertThat(em.find(Book.class, bookId)).isNull();
     }
 
     private static List<Author> getDbAuthors() {

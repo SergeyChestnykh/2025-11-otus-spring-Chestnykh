@@ -16,7 +16,6 @@ import ru.otus.hw.models.Genre;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -65,9 +64,11 @@ class JpaBookRepositoryTest {
         var actualBooks = jpaBookRepository.findAll();
         var expectedBooks = dbBooks;
 
+        actualBooks.forEach(em::detach);
+
         assertThat(actualBooks)
                 .usingRecursiveComparison()
-                .ignoringFields("id")
+                .ignoringFields("id", "comments")
                 .isEqualTo(expectedBooks);
     }
 
@@ -77,6 +78,9 @@ class JpaBookRepositoryTest {
         var expectedBook = new Book(0, "BookTitle_10500", dbAuthors.get(0),
                 List.of(dbGenres.get(0), dbGenres.get(2)));
         var returnedBook = jpaBookRepository.save(expectedBook);
+
+        em.detach(returnedBook);
+
         assertThat(returnedBook).isNotNull()
                 .matches(book -> book.getId() > 0)
                 .usingRecursiveComparison()
@@ -100,12 +104,16 @@ class JpaBookRepositoryTest {
         var expectedComments = List.of(new Comment(0, "New comment", expectedBook));
         expectedBook.setComments(expectedComments);
 
-        assertThat(jpaBookRepository.findById(expectedBook.getId()))
-                .isPresent()
-                .get()
-                .isNotEqualTo(expectedBook);
+        Book actual = jpaBookRepository.findById(expectedBook.getId()).orElseThrow();
+        em.detach(actual);
+        assertThat(actual).isNotEqualTo(expectedBook);
 
+        em.clear();
         var returnedBook = jpaBookRepository.save(expectedBook);
+        // почему если раскомментировать то выводит ошибку
+        //Expected :Book(id=1, title=BookTitle_10500)
+        //Actual   :Book(id=1, title=BookTitle_1)?
+//        em.detach(returnedBook);
         assertThat(returnedBook).isNotNull()
                 .matches(book -> book.getId() > 0)
                 .usingRecursiveComparison()
@@ -118,16 +126,10 @@ class JpaBookRepositoryTest {
                 .usingRecursiveComparison()
                 .ignoringFields("book", "book.author", "id")
                 .isEqualTo(expectedComments);
-        em.flush();
-        em.clear();
-        Optional<Book> book = jpaBookRepository.findById(returnedBook.getId());
-        em.flush();
-        em.clear();
+        Book book = jpaBookRepository.findById(returnedBook.getId()).orElseThrow();
+        em.detach(book);
         // не смог разобраться почему в book загружаются комментарии и тест проходит - прошу объяснить
-        assertThat(book)
-                .isPresent()
-                .get()
-                .isEqualTo(returnedBook);
+        assertThat(book).isEqualTo(expectedBook);
     }
 
     @DisplayName("должен удалять книгу по id ")

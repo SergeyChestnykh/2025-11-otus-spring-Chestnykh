@@ -39,7 +39,8 @@ public class JpaBookRepository implements BookRepository {
     public List<Book> findAll() {
         return em.createQuery(
                         "select distinct b from Book b " +
-                                "join fetch b.author "
+                                "join fetch b.author " +
+                                "join fetch b.genres "
                         , Book.class)
                 .getResultList();
     }

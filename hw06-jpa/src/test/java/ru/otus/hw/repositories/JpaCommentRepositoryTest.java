@@ -58,19 +58,6 @@ class JpaCommentRepositoryTest {
     }
 
     @Test
-    @DisplayName(" должен обновить комментарий по id")
-    void update() {
-        Comment comment = em.find(Comment.class, 1);
-        String newCommentText = "New comment";
-
-        jpaCommentRepository.update(comment.getId(), newCommentText);
-
-        Comment updatedComment = em.find(Comment.class, 1);
-        assertThat(updatedComment.getText())
-                .isEqualTo(newCommentText);
-    }
-
-    @Test
     @DisplayName("должен удалить комментарий по id")
     void deleteById() {
         Comment commentForDelete = em.find(Comment.class, 1);

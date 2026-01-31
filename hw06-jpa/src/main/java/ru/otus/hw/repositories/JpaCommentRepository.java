@@ -28,12 +28,6 @@ public class JpaCommentRepository implements CommentRepository {
     }
 
     @Override
-    public void update(long commentId, String text) {
-        Comment comment = em.find(Comment.class, commentId);
-        comment.setText(text);
-    }
-
-    @Override
     public Optional<Comment> findById(long id) {
         Comment comment = em.find(Comment.class, id);
         if (comment == null) {
@@ -47,8 +41,7 @@ public class JpaCommentRepository implements CommentRepository {
     public List<Comment> findAllForBook(long bookId) {
         TypedQuery<Comment> query = em.createQuery(
                 "select c from Comment c " +
-                        "join fetch c.book b " +
-                        "where b.id = :bookId",
+                        "where book.id = :bookId",
                 Comment.class);
         query.setParameter("bookId", bookId);
         return query.getResultList();

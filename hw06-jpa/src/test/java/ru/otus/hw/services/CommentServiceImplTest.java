@@ -2,10 +2,11 @@ package ru.otus.hw.services;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
 import ru.otus.hw.models.Comment;
+import ru.otus.hw.repositories.JpaBookRepository;
+import ru.otus.hw.repositories.JpaCommentRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,9 +14,12 @@ import java.util.Optional;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
-@SpringBootTest
-@AutoConfigureTestDatabase
-@Transactional
+@DataJpaTest
+@Import({
+        CommentServiceImpl.class,
+        JpaCommentRepository.class,
+        JpaBookRepository.class
+})
 class CommentServiceImplTest {
 
     @Autowired

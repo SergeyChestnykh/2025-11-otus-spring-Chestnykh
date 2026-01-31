@@ -2,11 +2,18 @@ package ru.otus.hw.services;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import ru.otus.hw.models.Book;
 import ru.otus.hw.models.Genre;
+import ru.otus.hw.repositories.AuthorRepository;
+import ru.otus.hw.repositories.BookRepository;
+import ru.otus.hw.repositories.GenreRepository;
+import ru.otus.hw.repositories.JpaAuthorRepository;
+import ru.otus.hw.repositories.JpaBookRepository;
+import ru.otus.hw.repositories.JpaGenreRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,13 +22,17 @@ import java.util.Set;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
-@SpringBootTest
-@AutoConfigureTestDatabase
-@Transactional
+@DataJpaTest
+@Import({
+        BookServiceImpl.class,
+        JpaAuthorRepository.class,
+        JpaBookRepository.class,
+        JpaGenreRepository.class
+})
 class BookServiceImplTest {
 
     @Autowired
-    private BookService bookService;
+    private BookServiceImpl bookService;
 
     @Test
     void findById() {

@@ -11,10 +11,8 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
 import ru.otus.hw.models.Author;
 import ru.otus.hw.models.Book;
-import ru.otus.hw.models.Comment;
 import ru.otus.hw.models.Genre;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -98,11 +96,8 @@ class JpaBookRepositoryTest {
     @Test
     void shouldSaveUpdatedBook() {
         var expectedBook = new Book(1L, "BookTitle_10500", dbAuthors.get(2),
-                List.of(dbGenres.get(4), dbGenres.get(5)),
-                new ArrayList<>()
+                List.of(dbGenres.get(4), dbGenres.get(5))
         );
-        var expectedComments = List.of(new Comment(0, "New comment", expectedBook));
-        expectedBook.setComments(expectedComments);
 
         Book actual = em.find(Book.class, expectedBook.getId());
         assertThat(actual).isNotNull();
@@ -121,11 +116,6 @@ class JpaBookRepositoryTest {
                 .ignoringFields("id")
                 .ignoringFields("comments")
                 .isEqualTo(expectedBook);
-
-        assertThat(returnedBook.getComments())
-                .usingRecursiveComparison()
-                .ignoringFields("book", "id")
-                .isEqualTo(expectedComments);
 
         Book book = em.find(Book.class, expectedBook.getId());
         em.detach(book);
@@ -168,23 +158,7 @@ class JpaBookRepositoryTest {
                         dbAuthors.get(id - 1),
                         dbGenres.subList((id - 1) * 2, (id - 1) * 2 + 2)
                 ))
-                .peek(JpaBookRepositoryTest::setComments)
                 .toList();
-    }
-
-    private static void setComments(Book book) {
-        if (book.getId() == 1) {
-            List<Comment> comments = List.of(
-                    new Comment(1, "First comment b1", book),
-                    new Comment(2, "Second comment b1", book)
-            );
-            book.setComments(comments);
-        } else if (book.getId() == 2) {
-            List<Comment> comments = List.of(
-                    new Comment(3, "First comment b2", book)
-            );
-            book.setComments(comments);
-        }
     }
 
     private static List<Book> getDbBooks() {

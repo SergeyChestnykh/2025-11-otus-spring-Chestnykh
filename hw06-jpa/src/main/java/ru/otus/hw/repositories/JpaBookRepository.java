@@ -30,7 +30,6 @@ public class JpaBookRepository implements BookRepository {
             return Optional.empty();
         }
         var book = results.get(0);
-        book.getComments().size();
         return Optional.of(book);
     }
 

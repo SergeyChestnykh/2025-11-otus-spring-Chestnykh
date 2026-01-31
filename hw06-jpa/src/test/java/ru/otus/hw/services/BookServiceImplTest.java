@@ -27,8 +27,6 @@ class BookServiceImplTest {
     void findById() {
         Book book = bookService.findById(1L).orElseThrow();
 
-        assertThatCode(() -> book.getComments().size()).doesNotThrowAnyException();
-        assertThat(book.getComments()).isNotEmpty();
         assertThatCode(() -> book.getGenres().size()).doesNotThrowAnyException();
         assertThat(book.getGenres()).isNotEmpty();
     }

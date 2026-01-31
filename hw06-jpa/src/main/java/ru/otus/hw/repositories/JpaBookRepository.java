@@ -1,7 +1,6 @@
 package ru.otus.hw.repositories;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -22,16 +21,17 @@ public class JpaBookRepository implements BookRepository {
         var query = em.createQuery(
                 "select distinct b from Book b " +
                         "join fetch b.author " +
+                        "join fetch b.genres " +
                         "where b.id = :id",
                 Book.class
-        );
-        query.setParameter("id", id);
-
-        try {
-            return Optional.of(query.getSingleResult());
-        } catch (NoResultException e) {
+        ).setParameter("id", id);
+        List<Book> results = query.getResultList();
+        if (results.isEmpty()) {
             return Optional.empty();
         }
+        var book = results.get(0);
+        book.getComments().size();
+        return Optional.of(book);
     }
 
     @Override

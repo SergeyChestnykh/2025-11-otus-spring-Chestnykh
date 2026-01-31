@@ -41,15 +41,8 @@ public class Book {
     @EqualsAndHashCode.Include
     private String title;
 
-    public Book(long id, String title, Author author, List<Genre> genres) {
-        this.id = id;
-        this.title = title;
-        this.author = author;
-        this.genres = genres;
-    }
-
-    @ManyToOne(targetEntity = Author.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id")
+    @ManyToOne(targetEntity = Author.class, fetch = FetchType.LAZY)
     private Author author;
 
     @Fetch(FetchMode.SUBSELECT)
@@ -62,4 +55,11 @@ public class Book {
     @OneToMany(mappedBy = "book", targetEntity = Comment.class, fetch = FetchType.LAZY,
             cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
+
+    public Book(long id, String title, Author author, List<Genre> genres) {
+        this.id = id;
+        this.title = title;
+        this.author = author;
+        this.genres = genres;
+    }
 }

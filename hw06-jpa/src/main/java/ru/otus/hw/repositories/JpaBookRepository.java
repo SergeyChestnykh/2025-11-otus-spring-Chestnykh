@@ -18,58 +18,27 @@ public class JpaBookRepository implements BookRepository {
 
     @Override
     public Optional<Book> findById(long id) {
-        var query = em.createQuery(
-                "select distinct b from Book b " +
-                        "join fetch b.author " +
-                        "join fetch b.genres " +
-                        "where b.id = :id",
-                Book.class
-        ).setParameter("id", id);
-        List<Book> results = query.getResultList();
-        if (results.isEmpty()) {
-            return Optional.empty();
-        }
-        var book = results.get(0);
-        return Optional.of(book);
+        return Optional.ofNullable(em.find(Book.class, id));
     }
 
     @Override
     public List<Book> findAll() {
-        return em.createQuery(
-                        "select distinct b from Book b " +
-                                "join fetch b.author " +
-                                "join fetch b.genres "
-                        , Book.class)
-                .getResultList();
+        List<Book> books = em.createQuery(
+                "select distinct b from Book b join fetch b.author",
+                Book.class
+        ).getResultList();
+
+        books.forEach(b -> b.getGenres().size());
+        return books;
     }
 
     @Override
     public Book save(Book book) {
         if (book.getId() == 0) {
-            persistAuthorIfNeeded(book);
-            persistGenresIfNeeded(book);
             em.persist(book);
             return book;
         } else {
             return em.merge(book);
-        }
-    }
-
-    private void persistAuthorIfNeeded(Book book) {
-        var author = book.getAuthor();
-        if (author != null && author.getId() == 0) {
-            em.persist(author);
-        }
-    }
-
-    private void persistGenresIfNeeded(Book book) {
-        var genres = book.getGenres();
-        if (genres != null) {
-            for (var genre : genres) {
-                if (genre.getId() == 0) {
-                    em.persist(genre);
-                }
-            }
         }
     }
 

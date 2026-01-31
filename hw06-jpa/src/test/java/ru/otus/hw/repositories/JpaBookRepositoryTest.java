@@ -68,7 +68,7 @@ class JpaBookRepositoryTest {
 
         assertThat(actualBooks)
                 .usingRecursiveComparison()
-                .ignoringFields("id", "comments")
+                .ignoringFields("id")
                 .isEqualTo(expectedBooks);
     }
 
@@ -89,7 +89,7 @@ class JpaBookRepositoryTest {
                 .isEqualTo(expectedBook);
 
         assertThat(em.find(Book.class, expectedBook.getId()))
-                .isEqualTo(returnedBook);
+                .isEqualTo(expectedBook);
     }
 
     @DisplayName("должен сохранять измененную книгу")

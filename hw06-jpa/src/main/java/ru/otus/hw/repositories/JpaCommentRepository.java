@@ -19,18 +19,13 @@ public class JpaCommentRepository implements CommentRepository {
     private final EntityManager em;
 
     @Override
-    public Optional<Comment> add(long bookId, String text) {
-        Book book = em.find(Book.class, bookId);
-
-        if (book == null) return Optional.empty();
-
-        Comment comment = new Comment();
-        comment.setText(text);
-        comment.setBook(book);
-
-        book.getComments().add(comment);
-        em.persist(comment);
-        return Optional.of(comment);
+    public Comment save(Comment comment) {
+        if (comment.getId() == 0) {
+            em.persist(comment);
+            return comment;
+        } else {
+            return em.merge(comment);
+        }
     }
 
     @Override

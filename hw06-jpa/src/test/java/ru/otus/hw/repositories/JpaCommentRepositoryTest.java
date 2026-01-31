@@ -27,16 +27,16 @@ class JpaCommentRepositoryTest {
     @Test
     @DisplayName(" должен добавить комментарий к книге")
     void add() {
-        String myCommentText = "My comment";
+        Comment comment = new Comment();
+        comment.setText("My comment");
 
-        Comment returnedComment = jpaCommentRepository.add(1, myCommentText).orElseThrow();
+        Comment returnedComment = jpaCommentRepository.save(comment);
 
-        assertThat(returnedComment.getText()).isEqualTo(myCommentText);
-        Comment comment = em.find(Comment.class, returnedComment.getId());
-        assertThat(comment)
+        assertThat(returnedComment.getText()).isEqualTo(comment.getText());
+        assertThat(em.find(Comment.class, returnedComment.getId()))
                 .usingRecursiveAssertion()
                 .ignoringFields("id")
-                .isEqualTo(returnedComment);
+                .isEqualTo(comment);
     }
 
     @Test

@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CommentRepository {
-    Optional<Comment> add(long bookId, String text);
+    Comment save(Comment comment);
 
     void update(long commentId, String text);
 

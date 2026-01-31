@@ -29,7 +29,7 @@ class CommentServiceImplTest {
                 .containsExactlyInAnyOrder("First comment b1", "Second comment b1");
 
         assertThatCode(
-                () -> all.forEach(Comment::getBook)
+                () -> all.forEach(comment -> comment.getBook().getTitle())
         ).doesNotThrowAnyException();
     }
 
@@ -37,7 +37,7 @@ class CommentServiceImplTest {
     void find() {
         Optional<Comment> comment = commentService.find(1L);
         assertThatCode(
-                () -> comment.orElseThrow().getBook()
+                () -> comment.orElseThrow().getBook().getTitle()
         ).doesNotThrowAnyException();
     }
 

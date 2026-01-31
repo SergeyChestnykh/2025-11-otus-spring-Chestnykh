@@ -5,7 +5,6 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
-import ru.otus.hw.models.Book;
 import ru.otus.hw.models.Comment;
 
 import java.util.List;
@@ -47,7 +46,9 @@ public class JpaCommentRepository implements CommentRepository {
     @Override
     public List<Comment> findAllForBook(long bookId) {
         TypedQuery<Comment> query = em.createQuery(
-                "select c from Comment c where c.book.id = :bookId",
+                "select c from Comment c " +
+                        "join fetch c.book b " +
+                        "where b.id = :bookId",
                 Comment.class);
         query.setParameter("bookId", bookId);
         return query.getResultList();

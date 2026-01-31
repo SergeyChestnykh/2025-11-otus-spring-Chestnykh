@@ -48,12 +48,18 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Transactional
     public Comment update(long commentId, String text) {
-        return null;
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new EntityNotFoundException("Comment not found with id:" + commentId));
+        comment.setText(text);
+        return commentRepository.save(comment);
     }
 
-    @Override
-    public void deleteById(long id) {
 
+    @Override
+    @Transactional
+    public void deleteById(long id) {
+        commentRepository.deleteById(id);
     }
 }

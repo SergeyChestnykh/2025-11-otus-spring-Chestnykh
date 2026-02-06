@@ -23,13 +23,11 @@ public class JpaBookRepository implements BookRepository {
 
     @Override
     public List<Book> findAll() {
-        List<Book> books = em.createQuery(
+
+        return em.createQuery(
                 "select distinct b from Book b join fetch b.author",
                 Book.class
         ).getResultList();
-
-        books.forEach(b -> b.getGenres().size());
-        return books;
     }
 
     @Override

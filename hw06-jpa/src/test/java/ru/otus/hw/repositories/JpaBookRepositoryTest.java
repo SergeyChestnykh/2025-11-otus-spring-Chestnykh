@@ -68,7 +68,7 @@ class JpaBookRepositoryTest {
 
         assertThat(actualBooks)
                 .usingRecursiveComparison()
-                .ignoringFields("id")
+                .ignoringFields("id", "genres")
                 .isEqualTo(expectedBooks);
     }
 

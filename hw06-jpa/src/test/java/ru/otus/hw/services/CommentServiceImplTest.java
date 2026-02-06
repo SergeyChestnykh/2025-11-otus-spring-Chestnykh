@@ -4,7 +4,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import ru.otus.hw.models.Comment;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import ru.otus.hw.converters.AuthorConverter;
+import ru.otus.hw.converters.BookConverter;
+import ru.otus.hw.converters.CommentConverter;
+import ru.otus.hw.converters.GenreConverter;
+import ru.otus.hw.dto.CommentDto;
 import ru.otus.hw.repositories.JpaBookRepository;
 import ru.otus.hw.repositories.JpaCommentRepository;
 
@@ -18,8 +25,14 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 @Import({
         CommentServiceImpl.class,
         JpaCommentRepository.class,
-        JpaBookRepository.class
+        JpaBookRepository.class,
+        CommentConverter.class,
+        BookConverter.class,
+        GenreConverter.class,
+        AuthorConverter.class
 })
+@Transactional(propagation = Propagation.NOT_SUPPORTED)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class CommentServiceImplTest {
 
     @Autowired
@@ -27,31 +40,31 @@ class CommentServiceImplTest {
 
     @Test
     void findAllForBook() {
-        List<Comment> all = commentService.findAllForBook(1L);
+        List<CommentDto> all = commentService.findAllForBook(1L);
 
-        assertThat(all.stream().map(Comment::getText).toList())
+        assertThat(all.stream().map(CommentDto::text).toList())
                 .containsExactlyInAnyOrder("First comment b1", "Second comment b1");
 
         assertThatCode(
-                () -> all.forEach(comment -> comment.getBook().getTitle())
+                () -> all.forEach(comment -> comment.bookDto().title())
         ).doesNotThrowAnyException();
     }
 
     @Test
     void find() {
-        Optional<Comment> comment = commentService.find(1L);
+        Optional<CommentDto> comment = commentService.find(1L);
         assertThatCode(
-                () -> comment.orElseThrow().getBook().getTitle()
+                () -> comment.orElseThrow().bookDto().title()
         ).doesNotThrowAnyException();
     }
 
     @Test
     void insert() {
-        Comment newComment = commentService.insert(1L, "New comment");
+        CommentDto newComment = commentService.insert(1L, "New comment");
 
-        Comment comment = commentService.find(newComment.getId()).orElseThrow();
-        assertThat(comment.getText()).isEqualTo("New comment");
-        assertThat(comment.getBook().getId()).isEqualTo(1L);
+        CommentDto comment = commentService.find(newComment.id()).orElseThrow();
+        assertThat(comment.text()).isEqualTo("New comment");
+        assertThat(comment.bookDto().id()).isEqualTo(1L);
 
     }
 
@@ -59,11 +72,11 @@ class CommentServiceImplTest {
     void update() {
         String updatedText = "Updated comment text";
 
-        Comment updatedComment = commentService.update(1L, updatedText);
+        CommentDto updatedComment = commentService.update(1L, updatedText);
 
-        Comment comment = commentService.find(updatedComment.getId()).orElseThrow();
-        assertThat(comment.getText()).isEqualTo(updatedText);
-        assertThat(comment.getBook().getId()).isEqualTo(1L);
+        CommentDto comment = commentService.find(updatedComment.id()).orElseThrow();
+        assertThat(comment.text()).isEqualTo(updatedText);
+        assertThat(comment.bookDto().id()).isEqualTo(1L);
     }
 
     @Test

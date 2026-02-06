@@ -9,11 +9,11 @@ import java.util.Optional;
 public interface CommentService {
     List<CommentDto> findAllForBook(long bookId);
 
-    Optional<CommentDto> find(long CommentDtoId);
+    Optional<CommentDto> find(long id);
 
     CommentDto insert(long bookId, String text);
 
-    CommentDto update(long CommentDtoId, String text);
+    CommentDto update(long id, String text);
 
     void deleteById(long id);
 }

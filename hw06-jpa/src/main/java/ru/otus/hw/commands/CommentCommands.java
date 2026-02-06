@@ -11,7 +11,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @ShellComponent
 public class CommentCommands {
+
     private final CommentService commentService;
+
     private final CommentConverter commentConverter;
 
     @ShellMethod(value = "Find all comments for book", key = "bc")

@@ -12,7 +12,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Service
 public class GenreServiceImpl implements GenreService {
+
     private final GenreRepository genreRepository;
+
     private final GenreConverter genreConverter;
 
     @Override

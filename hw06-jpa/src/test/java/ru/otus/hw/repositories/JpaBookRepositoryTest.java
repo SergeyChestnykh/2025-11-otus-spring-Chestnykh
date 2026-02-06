@@ -105,10 +105,6 @@ class JpaBookRepositoryTest {
         em.detach(actual);
 
         var returnedBook = jpaBookRepository.save(expectedBook);
-        // почему если раскомментировать то выводит ошибку
-        //Expected :Book(id=1, title=BookTitle_10500)
-        //Actual   :Book(id=1, title=BookTitle_1)?
-//        em.detach(returnedBook);
         assertThat(returnedBook).isNotNull()
                 .matches(book -> book.getId() > 0)
                 .usingRecursiveComparison()
@@ -119,7 +115,6 @@ class JpaBookRepositoryTest {
 
         Book book = em.find(Book.class, expectedBook.getId());
         em.detach(book);
-        // не смог разобраться почему в book загружаются комментарии и тест проходит - прошу объяснить
         assertThat(book).isEqualTo(expectedBook);
         assertThat(book).isNotEqualTo(actual);
 

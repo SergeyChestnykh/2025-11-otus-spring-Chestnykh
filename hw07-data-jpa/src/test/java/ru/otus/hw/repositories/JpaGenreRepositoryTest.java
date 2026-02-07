@@ -4,7 +4,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Import;
 import ru.otus.hw.models.Genre;
 
 import java.util.List;
@@ -16,15 +15,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @DisplayName("Репозиторий жанров ")
 @DataJpaTest
-@Import(JpaGenreRepository.class)
 class JpaGenreRepositoryTest {
     @Autowired
-    private JpaGenreRepository jpaGenreRepository;
+    private GenreRepository genreRepository;
 
     @DisplayName("должен вернуть все жанры")
     @Test
     void findAll() {
-        List<Genre> allGenres = jpaGenreRepository.findAll();
+        List<Genre> allGenres = genreRepository.findAll();
 
         assertEquals(getDbGenres(), allGenres);
     }
@@ -37,7 +35,7 @@ class JpaGenreRepositoryTest {
         List<Genre> expectedGenres = List.of(expectedGenre1, expectedGenre2);
 
         Set<Long> expectedGenreIds = expectedGenres.stream().map(Genre::getId).collect(Collectors.toSet());
-        List<Genre> resultGenres = jpaGenreRepository.findAllByIds(expectedGenreIds);
+        List<Genre> resultGenres = genreRepository.findAllByIdIn(expectedGenreIds);
 
         assertEquals(expectedGenres, resultGenres);
     }

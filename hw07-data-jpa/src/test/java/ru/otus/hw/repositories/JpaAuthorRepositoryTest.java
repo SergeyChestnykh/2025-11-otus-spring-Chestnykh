@@ -3,9 +3,7 @@ package ru.otus.hw.repositories;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Import;
 import ru.otus.hw.models.Author;
 
 import java.util.List;
@@ -17,16 +15,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Репозиторий авторов ")
 @DataJpaTest
-@Import(JpaAuthorRepository.class)
 class JpaAuthorRepositoryTest {
 
     @Autowired
-    private JpaAuthorRepository jpaAuthorRepository;
+    private AuthorRepository authorRepository;
 
     @DisplayName("должен вернуть всех авторов")
     @Test
     void findAll() {
-        List<Author> resultAuthors = jpaAuthorRepository.findAll();
+        List<Author> resultAuthors = authorRepository.findAll();
 
         assertEquals(getDbAuthors(), resultAuthors);
     }
@@ -36,7 +33,7 @@ class JpaAuthorRepositoryTest {
     void findById() {
         Author expectedAuthor = getDbAuthors().get(2);
 
-        Optional<Author> resultAuthor = jpaAuthorRepository.findById(expectedAuthor.getId());
+        Optional<Author> resultAuthor = authorRepository.findById(expectedAuthor.getId());
 
         assertTrue(resultAuthor.isPresent());
         assertEquals(expectedAuthor, resultAuthor.get());

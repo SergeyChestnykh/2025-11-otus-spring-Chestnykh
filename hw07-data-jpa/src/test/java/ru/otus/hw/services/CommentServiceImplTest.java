@@ -54,6 +54,7 @@ class CommentServiceImplTest {
         assertThatCode(
                 () -> comment.orElseThrow().bookDto().title()
         ).doesNotThrowAnyException();
+
     }
 
     @Test

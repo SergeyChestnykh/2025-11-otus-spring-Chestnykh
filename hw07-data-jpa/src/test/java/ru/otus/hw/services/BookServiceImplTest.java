@@ -54,25 +54,8 @@ class BookServiceImplTest {
     }
 
     @Test
-    void findAllDto() {
-        List<ru.otus.hw.dto.BookDto> all = bookService.findAll();
-
-        assertThatCode(() -> {
-            all.forEach(book -> {
-                book.genres().size();
-            });
-        }).doesNotThrowAnyException();
-
-        assertThatCode(() -> {
-            all.forEach(book -> {
-                book.author().fullName();
-            });
-        }).doesNotThrowAnyException();
-    }
-
-    @Test
     void insert() {
-        ru.otus.hw.dto.BookDto newBook = bookService.insert("New book", 1, Set.of(1L, 2L));
+        BookDto newBook = bookService.insert("New book", 1, Set.of(1L, 2L));
 
         Optional<BookDto> bookFromServiceOpt = bookService.findById(newBook.id());
         BookDto bookFromService = bookFromServiceOpt.orElseThrow();

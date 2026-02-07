@@ -30,6 +30,7 @@ public class CommentConverter {
         );
     }
 
+    @SuppressWarnings("unused")
     public Comment dtoToComment(CommentDto commentDto, Book book) {
         Comment comment = new Comment();
         if (commentDto.id() != 0) {

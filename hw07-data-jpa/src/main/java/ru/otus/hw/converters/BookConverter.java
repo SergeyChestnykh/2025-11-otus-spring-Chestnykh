@@ -34,6 +34,7 @@ public class BookConverter {
                 book.getGenres().stream().map(genreConverter::genreToDto).collect(Collectors.toList()));
     }
 
+    @SuppressWarnings("unused")
     public Book dtoToBook(BookDto bookDto) {
         Book book = new Book();
 

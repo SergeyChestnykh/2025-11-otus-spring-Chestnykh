@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.context.annotation.Import;
 import ru.otus.hw.models.Book;
 import ru.otus.hw.models.Comment;
 
@@ -15,11 +14,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("Репозиторий комментариев ")
 @DataJpaTest
-@Import(JpaCommentRepository.class)
 class JpaCommentRepositoryTest {
 
     @Autowired
-    private JpaCommentRepository jpaCommentRepository;
+    private CommentRepository commentRepository;
 
     @Autowired
     private TestEntityManager em;
@@ -30,7 +28,7 @@ class JpaCommentRepositoryTest {
         Comment comment = new Comment();
         comment.setText("My comment");
 
-        Comment returnedComment = jpaCommentRepository.save(comment);
+        Comment returnedComment = commentRepository.save(comment);
 
         assertThat(returnedComment.getText()).isEqualTo(comment.getText());
         assertThat(em.find(Comment.class, returnedComment.getId()))
@@ -48,7 +46,7 @@ class JpaCommentRepositoryTest {
                 new Comment(2, "Second comment b1", expectedBook)
         );
 
-        var actualComments = jpaCommentRepository.findAllForBook(1);
+        var actualComments = commentRepository.findAllByBookId(1);
 
         assertThat(actualComments)
                 .usingRecursiveComparison()
@@ -63,7 +61,7 @@ class JpaCommentRepositoryTest {
         Comment commentForDelete = em.find(Comment.class, 1);
         assertThat(commentForDelete).isNotNull();
 
-        jpaCommentRepository.deleteById(commentForDelete.getId());
+        commentRepository.deleteById(commentForDelete.getId());
 
         assertThat(em.find(Comment.class, commentForDelete.getId())).isNull();
     }

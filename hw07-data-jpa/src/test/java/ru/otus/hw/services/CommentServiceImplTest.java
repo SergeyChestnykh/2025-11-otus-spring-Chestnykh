@@ -13,7 +13,6 @@ import ru.otus.hw.converters.CommentConverter;
 import ru.otus.hw.converters.GenreConverter;
 import ru.otus.hw.dto.CommentDto;
 import ru.otus.hw.repositories.JpaBookRepository;
-import ru.otus.hw.repositories.JpaCommentRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,7 +23,6 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 @DataJpaTest
 @Import({
         CommentServiceImpl.class,
-        JpaCommentRepository.class,
         JpaBookRepository.class,
         CommentConverter.class,
         BookConverter.class,

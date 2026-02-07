@@ -37,6 +37,7 @@ class BookServiceImplTest {
     private BookServiceImpl bookService;
 
     @Test
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     void findById() {
         BookDto book = bookService.findById(1L).orElseThrow();
 
@@ -45,12 +46,13 @@ class BookServiceImplTest {
     }
 
     @Test
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     void findAll() {
         List<BookDto> all = bookService.findAll();
 
-        assertThatCode(() -> {
-            all.forEach(book -> book.author().fullName());
-        }).doesNotThrowAnyException();
+        assertThatCode(
+                () -> all.forEach(book -> book.author().fullName())
+        ).doesNotThrowAnyException();
     }
 
     @Test

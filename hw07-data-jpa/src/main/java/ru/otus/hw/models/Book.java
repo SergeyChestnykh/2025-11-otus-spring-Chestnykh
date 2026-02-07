@@ -20,6 +20,7 @@ import org.hibernate.annotations.FetchMode;
 
 import java.util.List;
 
+@SuppressWarnings("JpaDataSourceORMInspection")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

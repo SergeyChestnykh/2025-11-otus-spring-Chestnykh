@@ -14,6 +14,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+@SuppressWarnings("JpaDataSourceORMInspection")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

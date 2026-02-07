@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@SuppressWarnings("JpaDataSourceORMInspection")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

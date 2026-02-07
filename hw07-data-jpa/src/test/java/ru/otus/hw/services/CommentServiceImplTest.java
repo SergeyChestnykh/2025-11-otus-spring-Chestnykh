@@ -35,6 +35,7 @@ class CommentServiceImplTest {
     private CommentServiceImpl commentService;
 
     @Test
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     void findAllForBook() {
         List<CommentDto> all = commentService.findAllForBook(1L);
 
@@ -47,6 +48,7 @@ class CommentServiceImplTest {
     }
 
     @Test
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     void find() {
         Optional<CommentDto> comment = commentService.find(1L);
         assertThatCode(

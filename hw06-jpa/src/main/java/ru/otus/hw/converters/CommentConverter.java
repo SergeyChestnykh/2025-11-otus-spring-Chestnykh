@@ -11,8 +11,6 @@ import java.util.Objects;
 @AllArgsConstructor
 public class CommentConverter {
 
-    private final BookConverter bookConverter;
-
     public String commentToString(CommentDto commentDto) {
         return "Id: %d, text: '%s".formatted(
                 commentDto.id(),

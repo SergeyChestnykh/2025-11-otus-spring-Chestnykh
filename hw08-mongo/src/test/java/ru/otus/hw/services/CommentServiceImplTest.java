@@ -1,10 +1,11 @@
 package ru.otus.hw.services;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.otus.hw.converters.AuthorConverter;
@@ -12,6 +13,10 @@ import ru.otus.hw.converters.BookConverter;
 import ru.otus.hw.converters.CommentConverter;
 import ru.otus.hw.converters.GenreConverter;
 import ru.otus.hw.dto.CommentDto;
+import ru.otus.hw.models.Author;
+import ru.otus.hw.models.Book;
+import ru.otus.hw.models.Comment;
+import ru.otus.hw.models.Genre;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,7 +24,6 @@ import java.util.Optional;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
-@DataJpaTest
 @Import({
         CommentServiceImpl.class,
         CommentConverter.class,
@@ -27,12 +31,30 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
         GenreConverter.class,
         AuthorConverter.class
 })
+@DataMongoTest
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class CommentServiceImplTest {
 
     @Autowired
-    private CommentServiceImpl commentService;
+    private CommentService commentService;
+
+    @Autowired
+    private MongoTemplate mongoTemplate;
+
+    @BeforeEach
+    void setUp() {
+        mongoTemplate.dropCollection(Comment.class);
+        mongoTemplate.dropCollection(Book.class);
+        var dbBooks = getDbBooks();
+        for (var book : dbBooks) {
+            mongoTemplate.save(book);
+        }
+        var dbComments = getDbComments();
+        for (var comment : dbComments) {
+            mongoTemplate.save(comment);
+        }
+    }
+
 
     @Test
     void findAllForBook() {
@@ -83,5 +105,20 @@ class CommentServiceImplTest {
 
             assertThat(commentService.find("1")).isEmpty();
         }).doesNotThrowAnyException();
+    }
+
+    private static List<Comment> getDbComments() {
+        Book book1 = new Book("1", "BookTitle_1", null, List.of());
+        return List.of(
+                new Comment("1", "First comment b1", book1),
+                new Comment("2", "Second comment b1", book1)
+        );
+    }
+
+    private static List<Book> getDbBooks() {
+        Author author1 = new Author("1", "Author_1");
+        Genre genre1 = new Genre("1", "Genre_1");
+        Book book1 = new Book("1", "BookTitle_1", author1, List.of(genre1));
+        return List.of(book1);
     }
 }

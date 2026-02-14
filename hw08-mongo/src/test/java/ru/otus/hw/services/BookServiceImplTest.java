@@ -1,10 +1,11 @@
 package ru.otus.hw.services;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.otus.hw.converters.AuthorConverter;
@@ -13,28 +14,55 @@ import ru.otus.hw.converters.CommentConverter;
 import ru.otus.hw.converters.GenreConverter;
 import ru.otus.hw.dto.BookDto;
 import ru.otus.hw.dto.GenreDto;
+import ru.otus.hw.models.Author;
+import ru.otus.hw.models.Book;
+import ru.otus.hw.models.Genre;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
-@DataJpaTest
 @Import({
         BookServiceImpl.class,
         CommentConverter.class,
         BookConverter.class,
         GenreConverter.class,
-        AuthorConverter.class
+        AuthorConverter.class,
 })
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
+@DataMongoTest
 class BookServiceImplTest {
 
     @Autowired
     private BookServiceImpl bookService;
+
+    @Autowired
+    private MongoTemplate mongoTemplate;
+
+    @BeforeEach
+    void setUp() {
+        mongoTemplate.dropCollection(Book.class);
+        mongoTemplate.dropCollection(Author.class);
+        mongoTemplate.dropCollection(Genre.class);
+
+        var dbAuthors = getDbAuthors();
+        var dbGenres = getDbGenres();
+        var dbBooks = getDbBooks(dbAuthors, dbGenres);
+
+        for (var author : dbAuthors) {
+            mongoTemplate.save(author);
+        }
+        for (var genre : dbGenres) {
+            mongoTemplate.save(genre);
+        }
+        for (var book : dbBooks) {
+            mongoTemplate.save(book);
+        }
+    }
 
     @Test
     void findById_shouldReturnBookWithGenresAndAuthor() {
@@ -110,5 +138,36 @@ class BookServiceImplTest {
 
             assertThat(bookService.findById("1")).isEmpty();
         }).doesNotThrowAnyException();
+    }
+
+
+    private static List<Author> getDbAuthors() {
+        return IntStream.range(1, 4).boxed()
+                .map(String::valueOf)
+                .map(id -> new Author(id, "Author_" + id))
+                .toList();
+    }
+
+    private static List<Genre> getDbGenres() {
+        return IntStream.range(1, 7).boxed()
+                .map(String::valueOf)
+                .map(id -> new Genre(id, "Genre_" + id))
+                .toList();
+    }
+
+    private static List<Book> getDbBooks(List<Author> dbAuthors, List<Genre> dbGenres) {
+        return IntStream.range(1, 4).boxed()
+                .map(id -> new Book(id.toString(),
+                        "BookTitle_" + id,
+                        dbAuthors.get(id - 1),
+                        dbGenres.subList((id - 1) * 2, (id - 1) * 2 + 2)
+                ))
+                .toList();
+    }
+
+    private static List<Book> getDbBooks() {
+        var dbAuthors = getDbAuthors();
+        var dbGenres = getDbGenres();
+        return getDbBooks(dbAuthors, dbGenres);
     }
 }

@@ -1,7 +1,6 @@
 package ru.otus.hw.models;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.EntityGraph;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;

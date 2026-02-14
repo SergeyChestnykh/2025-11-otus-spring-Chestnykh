@@ -12,7 +12,7 @@ import java.util.Objects;
 public class CommentConverter {
 
     public String commentToString(CommentDto commentDto) {
-        return "Id: %d, text: '%s".formatted(
+        return "Id: %s, text: '%s".formatted(
                 commentDto.id(),
                 Objects.toString(commentDto.text(), "")
         );

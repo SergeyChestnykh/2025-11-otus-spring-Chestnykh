@@ -12,7 +12,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "genres")
 public class Genre {
     @Id
-    private long id;
+    private String id;
 
     private String name;
 }

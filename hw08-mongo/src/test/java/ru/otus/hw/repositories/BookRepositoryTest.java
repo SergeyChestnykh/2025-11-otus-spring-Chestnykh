@@ -1,14 +1,13 @@
 package ru.otus.hw.repositories;
 
-import org.hibernate.Hibernate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import ru.otus.hw.models.Author;
 import ru.otus.hw.models.Book;
 import ru.otus.hw.models.Genre;
@@ -19,14 +18,14 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("Репозиторий на основе Jdbc для работы с книгами ")
-@DataJpaTest
-class JpaBookRepositoryTest {
+@DataMongoTest
+class BookRepositoryTest {
 
     @Autowired
-    private BookRepository jpaBookRepository;
+    private MongoTemplate mongoTemplate;
 
     @Autowired
-    private TestEntityManager em;
+    private BookRepository bookRepository;
 
     private List<Author> dbAuthors;
 
@@ -36,9 +35,23 @@ class JpaBookRepositoryTest {
 
     @BeforeEach
     void setUp() {
+        mongoTemplate.dropCollection(Book.class);
+        mongoTemplate.dropCollection(Author.class);
+        mongoTemplate.dropCollection(Genre.class);
+        
         dbAuthors = getDbAuthors();
         dbGenres = getDbGenres();
         dbBooks = getDbBooks(dbAuthors, dbGenres);
+        
+        for (var author : dbAuthors) {
+            mongoTemplate.save(author);
+        }
+        for (var genre : dbGenres) {
+            mongoTemplate.save(genre);
+        }
+        for (var book : dbBooks) {
+            mongoTemplate.save(book);
+        }
     }
 
     @DisplayName("должен загружать книгу по id")
@@ -46,7 +59,7 @@ class JpaBookRepositoryTest {
     @MethodSource("getDbBooks")
     void shouldReturnCorrectBookById(Book expectedBook) {
 
-        var actualBook = jpaBookRepository.findById(expectedBook.getId());
+        var actualBook = bookRepository.findById(expectedBook.getId());
 
         assertThat(actualBook).isPresent();
         assertThat(actualBook.get().getId()).isEqualTo(expectedBook.getId());
@@ -60,14 +73,8 @@ class JpaBookRepositoryTest {
     @DisplayName("должен загружать список всех книг")
     @Test
     void shouldReturnCorrectBooksList() {
-        var actualBooks = jpaBookRepository.findAll();
+        var actualBooks = bookRepository.findAll();
         var expectedBooks = dbBooks;
-
-        actualBooks.forEach(book -> {
-            em.detach(book);
-            book.setAuthor(Hibernate.unproxy(book.getAuthor(), Author.class));
-        });
-
 
         assertThat(actualBooks)
                 .usingRecursiveComparison()
@@ -78,80 +85,63 @@ class JpaBookRepositoryTest {
     @DisplayName("должен сохранять новую книгу")
     @Test
     void shouldSaveNewBook() {
-        var expectedBook = new Book(0, "BookTitle_10500", dbAuthors.get(0),
+        var expectedBook = new Book("0", "BookTitle_10500", dbAuthors.get(0),
                 List.of(dbGenres.get(0), dbGenres.get(2)));
 
-        var returnedBook = jpaBookRepository.save(expectedBook);
-        em.detach(returnedBook);
+        var returnedBook = bookRepository.save(expectedBook);
 
         assertThat(returnedBook).isNotNull()
-                .matches(book -> book.getId() > 0)
                 .usingRecursiveComparison()
                 .ignoringExpectedNullFields()
                 .ignoringFields("id")
-                .isEqualTo(expectedBook);
-
-        assertThat(em.find(Book.class, expectedBook.getId()))
                 .isEqualTo(expectedBook);
     }
 
     @DisplayName("должен сохранять измененную книгу")
     @Test
     void shouldSaveUpdatedBook() {
-        var expectedBook = new Book(1L, "BookTitle_10500", dbAuthors.get(2),
+        var expectedBook = new Book("1", "BookTitle_10500", dbAuthors.get(2),
                 List.of(dbGenres.get(4), dbGenres.get(5))
         );
 
-        Book actual = em.find(Book.class, expectedBook.getId());
-        assertThat(actual).isNotNull();
-        assertThat(actual).isNotEqualTo(expectedBook);
-        em.detach(actual);
-
-        var returnedBook = jpaBookRepository.save(expectedBook);
+        var returnedBook = bookRepository.save(expectedBook);
         assertThat(returnedBook).isNotNull()
-                .matches(book -> book.getId() > 0)
                 .usingRecursiveComparison()
                 .ignoringExpectedNullFields()
                 .ignoringFields("id")
                 .ignoringFields("comments")
                 .isEqualTo(expectedBook);
-
-        Book book = em.find(Book.class, expectedBook.getId());
-        em.detach(book);
-        assertThat(book).isEqualTo(expectedBook);
-        assertThat(book).isNotEqualTo(actual);
-
-        System.out.println("actual:" + actual);
-        System.out.println("expected:" + expectedBook);
-        System.out.println("book:" + book);
     }
 
     @DisplayName("должен удалять книгу по id ")
     @Test
     void shouldDeleteBook() {
-        var bookId = 1L;
-        assertThat(em.find(Book.class, bookId)).isNotNull();
+        var bookId = "1";
 
-        jpaBookRepository.deleteById(bookId);
+        assertThat(mongoTemplate.findById(bookId, Book.class)).isNotNull();
 
-        assertThat(em.find(Book.class, bookId)).isNull();
+        bookRepository.deleteById(bookId);
+
+        assertThat(mongoTemplate.findById(bookId, Book.class)).isNull();
     }
 
     private static List<Author> getDbAuthors() {
         return IntStream.range(1, 4).boxed()
+                .map(String::valueOf)
                 .map(id -> new Author(id, "Author_" + id))
                 .toList();
     }
 
     private static List<Genre> getDbGenres() {
         return IntStream.range(1, 7).boxed()
+                .map(String::valueOf)
                 .map(id -> new Genre(id, "Genre_" + id))
                 .toList();
     }
 
     private static List<Book> getDbBooks(List<Author> dbAuthors, List<Genre> dbGenres) {
         return IntStream.range(1, 4).boxed()
-                .map(id -> new Book(id,
+                .map(id -> new Book(id.toString(),
                         "BookTitle_" + id,
                         dbAuthors.get(id - 1),
                         dbGenres.subList((id - 1) * 2, (id - 1) * 2 + 2)

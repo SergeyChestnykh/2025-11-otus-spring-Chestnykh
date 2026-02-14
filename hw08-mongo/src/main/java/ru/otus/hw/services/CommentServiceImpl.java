@@ -36,7 +36,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public Optional<CommentDto> find(String id) {
         return commentRepository.findById(id).map(commentConverter::commentToDto);
     }

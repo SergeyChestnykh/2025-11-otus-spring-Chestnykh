@@ -1,11 +1,13 @@
 package ru.otus.hw;
 
+import com.github.cloudyrock.spring.v5.EnableMongock;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
 @SpringBootApplication
-@EntityScan("ru.otus.hw.models")
+@EnableMongock
+@EnableMongoRepositories
 public class Application {
 
     public static void main(String[] args) {

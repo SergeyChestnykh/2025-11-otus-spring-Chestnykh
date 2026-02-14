@@ -211,10 +211,4 @@ class BookServiceImplTest {
                 new Comment("2", "Second comment b1", book1)
         );
     }
-
-    private static List<Book> getDbBooks() {
-        var dbAuthors = getDbAuthors();
-        var dbGenres = getDbGenres();
-        return getDbBooks(dbAuthors, dbGenres);
-    }
 }

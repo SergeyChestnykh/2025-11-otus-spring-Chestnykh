@@ -11,6 +11,7 @@ import ru.otus.hw.models.Comment;
 import ru.otus.hw.repositories.BookRepository;
 import ru.otus.hw.repositories.CommentRepository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -27,21 +28,22 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<CommentDto> findAllForBook(long bookId) {
-        return commentRepository.findAllByBookId(bookId).stream()
+    public List<CommentDto> findAllForBook(String bookId) {
+        Collection<Comment> allByBookId = commentRepository.findAllByBook_Id(bookId);
+        return allByBookId.stream()
                 .map(commentConverter::commentToDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     @Transactional
-    public Optional<CommentDto> find(long id) {
+    public Optional<CommentDto> find(String id) {
         return commentRepository.findById(id).map(commentConverter::commentToDto);
     }
 
     @Override
     @Transactional
-    public CommentDto insert(long bookId, String text) {
+    public CommentDto insert(String bookId, String text) {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new EntityNotFoundException("Book not found with id:" + bookId));
 
@@ -54,7 +56,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional
-    public CommentDto update(long id, String text) {
+    public CommentDto update(String id, String text) {
         Comment comment = commentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Comment not found with id:" + id));
         comment.setText(text);
@@ -64,7 +66,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional
-    public void deleteById(long id) {
+    public void deleteById(String id) {
         commentRepository.deleteById(id);
     }
 }

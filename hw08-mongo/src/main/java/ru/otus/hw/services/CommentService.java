@@ -7,13 +7,13 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CommentService {
-    List<CommentDto> findAllForBook(long bookId);
+    List<CommentDto> findAllForBook(String bookId);
 
-    Optional<CommentDto> find(long id);
+    Optional<CommentDto> find(String id);
 
-    CommentDto insert(long bookId, String text);
+    CommentDto insert(String bookId, String text);
 
-    CommentDto update(long id, String text);
+    CommentDto update(String id, String text);
 
-    void deleteById(long id);
+    void deleteById(String id);
 }

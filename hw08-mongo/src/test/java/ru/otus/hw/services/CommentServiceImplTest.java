@@ -37,7 +37,7 @@ class CommentServiceImplTest {
     @Test
     void findAllForBook() {
         assertThatCode(() -> {
-            List<CommentDto> all = commentService.findAllForBook(1L);
+            List<CommentDto> all = commentService.findAllForBook("1");
             assertThat(all.stream().map(CommentDto::text).toList())
                     .containsExactlyInAnyOrder("First comment b1", "Second comment b1");
         }).doesNotThrowAnyException();
@@ -46,7 +46,7 @@ class CommentServiceImplTest {
     @Test
     void find() {
         assertThatCode(() -> {
-            Optional<CommentDto> comment = commentService.find(1L);
+            Optional<CommentDto> comment = commentService.find("1");
             assertThat(comment).isNotEmpty();
             assertThat(comment.orElseThrow().text()).isNotEmpty();
         }).doesNotThrowAnyException();
@@ -55,11 +55,10 @@ class CommentServiceImplTest {
     @Test
     void insert() {
         assertThatCode(() -> {
-            CommentDto newComment = commentService.insert(1L, "New comment");
+            CommentDto newComment = commentService.insert("1", "New comment");
 
             CommentDto comment = commentService.find(newComment.id()).orElseThrow();
             assertThat(comment.text()).isEqualTo("New comment");
-            assertThat(comment.id()).isGreaterThan(0);
         }).doesNotThrowAnyException();
     }
 
@@ -68,7 +67,7 @@ class CommentServiceImplTest {
         assertThatCode(() -> {
             String updatedText = "Updated comment text";
 
-            CommentDto updatedComment = commentService.update(1L, updatedText);
+            CommentDto updatedComment = commentService.update("1", updatedText);
 
             CommentDto comment = commentService.find(updatedComment.id()).orElseThrow();
             assertThat(comment.text()).isEqualTo(updatedText);
@@ -78,11 +77,11 @@ class CommentServiceImplTest {
     @Test
     void delete() {
         assertThatCode(() -> {
-            assertThat(commentService.find(1L)).isNotEmpty();
+            assertThat(commentService.find("1")).isNotEmpty();
 
-            commentService.deleteById(1L);
+            commentService.deleteById("1");
 
-            assertThat(commentService.find(1L)).isEmpty();
+            assertThat(commentService.find("1")).isEmpty();
         }).doesNotThrowAnyException();
     }
 }

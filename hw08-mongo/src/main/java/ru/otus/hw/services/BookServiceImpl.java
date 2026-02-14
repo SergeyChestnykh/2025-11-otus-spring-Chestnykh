@@ -31,7 +31,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<BookDto> findById(long id) {
+    public Optional<BookDto> findById(String id) {
         return bookRepository.findById(id).map(bookConverter::bookToDto);
     }
 
@@ -43,30 +43,30 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional
-    public BookDto insert(String title, long authorId, Set<Long> genresIds) {
-        return save(0, title, authorId, genresIds);
+    public BookDto insert(String title, String authorId, Set<String> genresIds) {
+        return save("", title, authorId, genresIds);
     }
 
     @Transactional
     @Override
-    public BookDto update(long id, String title, long authorId, Set<Long> genresIds) {
+    public BookDto update(String id, String title, String authorId, Set<String> genresIds) {
         return save(id, title, authorId, genresIds);
     }
 
     @Transactional
     @Override
-    public void deleteById(long id) {
+    public void deleteById(String id) {
         bookRepository.deleteById(id);
     }
 
-    private BookDto save(long id, String title, long authorId, Set<Long> genresIds) {
+    private BookDto save(String id, String title, String authorId, Set<String> genresIds) {
         if (isEmpty(genresIds)) {
             throw new IllegalArgumentException("Genres ids must not be null");
         }
 
         var author = authorRepository.findById(authorId)
                 .orElseThrow(() -> new EntityNotFoundException("Author with id %d not found".formatted(authorId)));
-        var genres = genreRepository.findAllByIdIn(genresIds);
+        var genres = genreRepository.findAllById(genresIds);
         if (isEmpty(genres) || genresIds.size() != genres.size()) {
             throw new EntityNotFoundException("One or all genres with ids %s not found".formatted(genresIds));
         }

@@ -1,6 +1,7 @@
 package ru.otus.hw.models;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityGraph;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -9,6 +10,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -27,6 +30,8 @@ import java.util.List;
 @Table(name = "books")
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@NamedEntityGraph(name = "Book.author-genres",
+        attributeNodes = {@NamedAttributeNode("author"), @NamedAttributeNode("genres")})
 public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

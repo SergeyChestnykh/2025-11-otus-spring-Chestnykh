@@ -37,51 +37,78 @@ class BookServiceImplTest {
     private BookServiceImpl bookService;
 
     @Test
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    void findById() {
-        BookDto book = bookService.findById(1L).orElseThrow();
+    void findById_shouldReturnBookWithGenresAndAuthor() {
+        assertThatCode(() -> {
+            BookDto book = bookService.findById(1L).orElseThrow();
 
-        assertThatCode(() -> book.genres().size()).doesNotThrowAnyException();
-        assertThat(book.genres()).isNotEmpty();
+            assertThat(book.id()).isEqualTo(1L);
+            assertThat(book.title()).isEqualTo("BookTitle_1");
+            assertThat(book.author()).isNotNull();
+            assertThat(book.author().id()).isEqualTo(1L);
+            assertThat(book.author().fullName()).isEqualTo("Author_1");
+            assertThat(book.genres()).isNotEmpty();
+            assertThat(book.genres()).hasSize(2);
+        }).doesNotThrowAnyException();
     }
 
     @Test
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    void findAll() {
-        List<BookDto> all = bookService.findAll();
+    void findById_shouldReturnEmptyForNonExistentId() {
+        assertThatCode(() -> {
+            Optional<BookDto> book = bookService.findById(999L);
+            assertThat(book).isEmpty();
+        }).doesNotThrowAnyException();
+    }
 
-        assertThatCode(
-                () -> all.forEach(book -> book.author().fullName())
-        ).doesNotThrowAnyException();
+    @Test
+    void findAll() {
+        assertThatCode(() -> {
+            List<BookDto> all = bookService.findAll();
+            all.forEach(book -> book.author().fullName());
+        }).doesNotThrowAnyException();
+    }
+
+    @Test
+    void findAllDto() {
+        assertThatCode(() -> {
+            List<BookDto> all = bookService.findAll();
+            all.forEach(book -> book.genres().size());
+            all.forEach(book -> book.author().fullName());
+        }).doesNotThrowAnyException();
     }
 
     @Test
     void insert() {
-        BookDto newBook = bookService.insert("New book", 1, Set.of(1L, 2L));
+        assertThatCode(() -> {
+            BookDto newBook = bookService.insert("New book", 1, Set.of(1L, 2L));
 
-        Optional<BookDto> bookFromServiceOpt = bookService.findById(newBook.id());
-        BookDto bookFromService = bookFromServiceOpt.orElseThrow();
-        assertThat(bookFromService.title()).isEqualTo("New book");
-        assertThat(bookFromService.author().id()).isEqualTo(1L);
-        assertThat(bookFromService.genres().stream().map(GenreDto::id))
-                .containsExactlyInAnyOrder(1L, 2L);
+            Optional<BookDto> bookFromServiceOpt = bookService.findById(newBook.id());
+            BookDto bookFromService = bookFromServiceOpt.orElseThrow();
+            assertThat(bookFromService.title()).isEqualTo("New book");
+            assertThat(bookFromService.author().id()).isEqualTo(1L);
+            assertThat(bookFromService.genres().stream().map(GenreDto::id))
+                    .containsExactlyInAnyOrder(1L, 2L);
+        }).doesNotThrowAnyException();
     }
 
     @Test
     void update() {
-        bookService.update(1L, "Updated book", 3, Set.of(5L, 6L));
+        assertThatCode(() -> {
+            bookService.update(1L, "Updated book", 3, Set.of(5L, 6L));
 
-        BookDto updatedBook = bookService.findById(1L).orElseThrow();
-        assertThat(updatedBook.title()).isEqualTo("Updated book");
-        assertThat(updatedBook.author().id()).isEqualTo(3L);
-        assertThat(updatedBook.genres().stream().map(GenreDto::id))
-                .containsExactlyInAnyOrder(5L, 6L);
+            BookDto updatedBook = bookService.findById(1L).orElseThrow();
+            assertThat(updatedBook.title()).isEqualTo("Updated book");
+            assertThat(updatedBook.author().id()).isEqualTo(3L);
+            assertThat(updatedBook.genres().stream().map(GenreDto::id))
+                    .containsExactlyInAnyOrder(5L, 6L);
+        }).doesNotThrowAnyException();
     }
 
     @Test
     void delete() {
-        bookService.deleteById(1L);
+        assertThatCode(() -> {
+            bookService.deleteById(1L);
 
-        assertThat(bookService.findById(1L)).isEmpty();
+            assertThat(bookService.findById(1L)).isEmpty();
+        }).doesNotThrowAnyException();
     }
 }

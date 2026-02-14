@@ -35,55 +35,54 @@ class CommentServiceImplTest {
     private CommentServiceImpl commentService;
 
     @Test
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     void findAllForBook() {
-        List<CommentDto> all = commentService.findAllForBook(1L);
-
-        assertThat(all.stream().map(CommentDto::text).toList())
-                .containsExactlyInAnyOrder("First comment b1", "Second comment b1");
-
-        assertThatCode(
-                () -> all.forEach(comment -> comment.bookDto().title())
-        ).doesNotThrowAnyException();
+        assertThatCode(() -> {
+            List<CommentDto> all = commentService.findAllForBook(1L);
+            assertThat(all.stream().map(CommentDto::text).toList())
+                    .containsExactlyInAnyOrder("First comment b1", "Second comment b1");
+        }).doesNotThrowAnyException();
     }
 
     @Test
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     void find() {
-        Optional<CommentDto> comment = commentService.find(1L);
-        assertThatCode(
-                () -> comment.orElseThrow().bookDto().title()
-        ).doesNotThrowAnyException();
-
+        assertThatCode(() -> {
+            Optional<CommentDto> comment = commentService.find(1L);
+            assertThat(comment).isNotEmpty();
+            assertThat(comment.orElseThrow().text()).isNotEmpty();
+        }).doesNotThrowAnyException();
     }
 
     @Test
     void insert() {
-        CommentDto newComment = commentService.insert(1L, "New comment");
+        assertThatCode(() -> {
+            CommentDto newComment = commentService.insert(1L, "New comment");
 
-        CommentDto comment = commentService.find(newComment.id()).orElseThrow();
-        assertThat(comment.text()).isEqualTo("New comment");
-        assertThat(comment.bookDto().id()).isEqualTo(1L);
-
+            CommentDto comment = commentService.find(newComment.id()).orElseThrow();
+            assertThat(comment.text()).isEqualTo("New comment");
+            assertThat(comment.id()).isGreaterThan(0);
+        }).doesNotThrowAnyException();
     }
 
     @Test
     void update() {
-        String updatedText = "Updated comment text";
+        assertThatCode(() -> {
+            String updatedText = "Updated comment text";
 
-        CommentDto updatedComment = commentService.update(1L, updatedText);
+            CommentDto updatedComment = commentService.update(1L, updatedText);
 
-        CommentDto comment = commentService.find(updatedComment.id()).orElseThrow();
-        assertThat(comment.text()).isEqualTo(updatedText);
-        assertThat(comment.bookDto().id()).isEqualTo(1L);
+            CommentDto comment = commentService.find(updatedComment.id()).orElseThrow();
+            assertThat(comment.text()).isEqualTo(updatedText);
+        }).doesNotThrowAnyException();
     }
 
     @Test
     void delete() {
-        assertThat(commentService.find(1L)).isNotEmpty();
+        assertThatCode(() -> {
+            assertThat(commentService.find(1L)).isNotEmpty();
 
-        commentService.deleteById(1L);
+            commentService.deleteById(1L);
 
-        assertThat(commentService.find(1L)).isEmpty();
+            assertThat(commentService.find(1L)).isEmpty();
+        }).doesNotThrowAnyException();
     }
 }

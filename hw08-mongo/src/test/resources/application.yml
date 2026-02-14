@@ -1,25 +1,15 @@
 spring:
-  datasource:
-    url: jdbc:h2:mem:testdb
-  sql:
-    init:
-      mode: always
-      data-locations: data.sql # без этого грузит из обоих файлов!!!
-      schema-locations: schema.sql
+  data:
+    mongodb:
+      #      port: 0 # when flapdoodle using
+      database: company
 
-  shell:
-    interactive:
-      enabled: false
-
-  jpa:
-    generate-ddl: false
-    #    generate-ddl: true
-    hibernate:
-      ddl-auto: none
-    #      ddl-auto: create-drop
-
-    show-sql: true
-
-logging:
-  level:
-    ROOT: ERROR
+mongock:
+  runner-type: "ApplicationRunner" # default
+  #runner-type: "InitializingBean"
+  change-logs-scan-package:
+    - ru.otus.spring.mongock.changelog
+  mongo-db:
+    write-concern:
+      journal: false
+    read-concern: local

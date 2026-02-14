@@ -1,13 +1,5 @@
 spring:
-  datasource:
-    url: jdbc:h2:mem:maindb
-  sql:
-    init:
-      mode: always
-      data-locations: data.sql
-      schema-locations: schema.sql
-  jpa:
-    generate-ddl: false
-    #        generate-ddl: true
-    hibernate:
-      ddl-auto: none
+  data:
+    mongodb:
+#      port: 0 # when flapdoodle using
+      database: company

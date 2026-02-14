@@ -23,6 +23,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Import({
         CommentServiceImpl.class,
@@ -105,6 +106,24 @@ class CommentServiceImplTest {
 
             assertThat(commentService.find("1")).isEmpty();
         }).doesNotThrowAnyException();
+    }
+
+    @Test
+    void updateBook_shouldReflectInComment() {
+        Book bookToUpdate = mongoTemplate.findById("1", Book.class);
+        String newBookTitle = "Updated_BookTitle_1";
+        bookToUpdate.setTitle(newBookTitle);
+        mongoTemplate.save(bookToUpdate);
+
+        Book updatedBookInDb = mongoTemplate.findById("1", Book.class);
+        assertEquals(newBookTitle, updatedBookInDb.getTitle(),
+                "Книга должна быть обновлена в базе данных");
+
+        Comment commentFromDb = mongoTemplate.findById("1", Comment.class);
+        String commentBookTitle = commentFromDb.getBook().getTitle();
+
+        assertEquals(newBookTitle, commentBookTitle,
+                "Книга в комментарии должна быть обновлена после изменения в коллекции books");
     }
 
     private static List<Comment> getDbComments() {

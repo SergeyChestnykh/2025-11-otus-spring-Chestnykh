@@ -23,8 +23,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.IntStream;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Import({
         BookServiceImpl.class,
@@ -138,6 +140,34 @@ class BookServiceImplTest {
 
             assertThat(bookService.findById("1")).isEmpty();
         }).doesNotThrowAnyException();
+    }
+
+    @Test
+    void updateAuthor_shouldReflectInBook() {
+        Author authorToUpdate = mongoTemplate.findById("1", Author.class);
+        String newAuthorFullName = "Updated_Author_1";
+        authorToUpdate.setFullName(newAuthorFullName);
+        mongoTemplate.save(authorToUpdate);
+
+        BookDto bookAfter = bookService.findById("1").orElseThrow();
+
+        String actualAuthorFullName = bookAfter.author().fullName();
+        assertEquals(newAuthorFullName, actualAuthorFullName,
+                "Автор в книге должен быть обновлен после изменения в коллекции authors");
+    }
+
+    @Test
+    void updateGenre_shouldReflectInBook() {
+        Genre genreToUpdate = mongoTemplate.findById("1", Genre.class);
+        String newGenreName = "Updated_Genre_1";
+        genreToUpdate.setName(newGenreName);
+        mongoTemplate.save(genreToUpdate);
+
+        BookDto bookAfter = bookService.findById("1").orElseThrow();
+
+        String actualGenreName = bookAfter.genres().get(0).name();
+        assertEquals(newGenreName, actualGenreName,
+                "Жанр в книге должен быть обновлен после изменения в коллекции genres");
     }
 
 

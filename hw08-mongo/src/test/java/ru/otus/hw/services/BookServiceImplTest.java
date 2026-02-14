@@ -16,6 +16,7 @@ import ru.otus.hw.dto.BookDto;
 import ru.otus.hw.dto.GenreDto;
 import ru.otus.hw.models.Author;
 import ru.otus.hw.models.Book;
+import ru.otus.hw.models.Comment;
 import ru.otus.hw.models.Genre;
 
 import java.util.List;
@@ -50,6 +51,7 @@ class BookServiceImplTest {
         mongoTemplate.dropCollection(Book.class);
         mongoTemplate.dropCollection(Author.class);
         mongoTemplate.dropCollection(Genre.class);
+        mongoTemplate.dropCollection(Comment.class);
 
         var dbAuthors = getDbAuthors();
         var dbGenres = getDbGenres();
@@ -63,6 +65,9 @@ class BookServiceImplTest {
         }
         for (var book : dbBooks) {
             mongoTemplate.save(book);
+        }
+        for (var comment : getDbComments(dbBooks)) {
+            mongoTemplate.save(comment);
         }
     }
 
@@ -136,9 +141,13 @@ class BookServiceImplTest {
     @Test
     void delete() {
         assertThatCode(() -> {
+            List<Comment> bookComments = mongoTemplate.findAll(Comment.class).stream()
+                    .filter((comment) -> comment.getBook().getId().equals("1")).toList();
             bookService.deleteById("1");
 
             assertThat(bookService.findById("1")).isEmpty();
+            assertThat(mongoTemplate.findAll(Comment.class))
+                    .doesNotContainAnyElementsOf(bookComments);
         }).doesNotThrowAnyException();
     }
 
@@ -193,6 +202,14 @@ class BookServiceImplTest {
                         dbGenres.subList((id - 1) * 2, (id - 1) * 2 + 2)
                 ))
                 .toList();
+    }
+
+    private static List<Comment> getDbComments(List<Book> dbBooks) {
+        Book book1 = dbBooks.get(0);
+        return List.of(
+                new Comment("1", "First comment b1", book1),
+                new Comment("2", "Second comment b1", book1)
+        );
     }
 
     private static List<Book> getDbBooks() {

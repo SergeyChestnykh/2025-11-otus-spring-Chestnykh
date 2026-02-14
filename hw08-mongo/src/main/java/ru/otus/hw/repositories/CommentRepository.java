@@ -7,4 +7,6 @@ import java.util.Collection;
 
 public interface CommentRepository extends MongoRepository<Comment, String> {
     Collection<Comment> findAllByBook_Id(String bookId);
+
+    void deleteAllByBook_Id(String bookId);
 }

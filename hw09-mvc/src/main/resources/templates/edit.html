@@ -1,135 +1,59 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
     <title th:text="${isNew} ? 'Add Book' : 'Edit Book'">Book Form</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
     <style>
-        .form-container { margin-top: 20px; }
-        .genre-row { display: flex; align-items: center; margin-bottom: 5px; }
-        .genre-row select { flex: 1; margin-right: 8px; }
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        form { max-width: 500px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], select { padding: 8px; width: 100%; box-sizing: border-box; margin-bottom: 5px; }
+        .btn { padding: 8px 15px; border: none; cursor: pointer; margin-right: 5px; }
+        .btn-success { background: #4CAF50; color: white; }
+        .btn-default { background: #ddd; }
+        .btn-primary { background: #2196F3; color: white; }
+        .error { color: red; font-size: 0.9em; }
     </style>
 </head>
 <body>
-<div class="container form-container" th:object="${book}">
+    <h1 th:text="${isNew} ? 'Add Book' : 'Edit Book'">Book Form</h1>
 
-    <h4 th:text="${isNew} ? 'Add Book' : 'Edit Book'">Edit Book</h4>
-
-    <form th:action="${isNew} ? @{/book} : @{/book/{id}(id=*{id})}" method="post">
-
-        <input type="hidden" name="_method" th:if="!${isNew}" value="put"/>
+    <form th:action="${isNew} ? @{/book} : @{/book/{id}(id=${book.id})}" 
+          th:object="${book}" 
+          method="post">
+        
+        <input type="hidden" th:unless="${isNew}" name="_method" value="put"/>
 
         <div class="form-group">
             <label for="title">Title</label>
-            <input type="text"
-                   id="title"
-                   th:field="*{title}"
-                   class="form-control"
-                   required />
-            <div class="text-danger"
-                 th:if="${#fields.hasErrors('title')}"
-                 th:errors="*{title}">
-            </div>
+            <input type="text" id="title" th:field="*{title}" required>
+            <span class="error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></span>
         </div>
 
         <div class="form-group">
             <label for="author">Author</label>
-            <select id="author"
-                    th:field="*{authorId}"
-                    class="form-control">
+            <select id="author" th:field="*{authorId}" required>
                 <option value="">Select author</option>
-                <option th:each="a : ${authors}"
-                        th:value="${a.id}"
-                        th:text="${a.fullName}">
-                </option>
+                <option th:each="a : ${authors}" 
+                        th:value="${a.id()}" 
+                        th:text="${a.fullName()}">Author</option>
             </select>
-            <div class="text-danger"
-                 th:if="${#fields.hasErrors('authorId')}"
-                 th:errors="*{authorId}">
-            </div>
+            <span class="error" th:if="${#fields.hasErrors('authorId')}" th:errors="*{authorId}"></span>
         </div>
 
         <div class="form-group">
-            <label>Genres</label>
-            <div id="genres-wrapper">
-                <div class="genre-row"
-                     th:each="g, iter : ${book.genreIds != null && !#lists.isEmpty(book.genreIds) ? book.genreIds : {null}}">
-                    <select th:id="'genre-' + ${iter.index}"
-                            name="genreIds"
-                            class="form-control genre-select">
-                        <option value="">Select genre</option>
-                        <option th:each="opt : ${genres}"
-                                th:value="${opt.id}"
-                                th:text="${opt.name}"
-                                th:selected="${g != null and opt.id == g}">
-                        </option>
-                    </select>
-                    <button type="button"
-                            class="btn btn-xs btn-danger remove-genre-btn">
-                        Remove
-                    </button>
-                </div>
-            </div>
-            <button type="button"
-                    id="add-genre-btn"
-                    class="btn btn-xs btn-default">
-                Add Genre
-            </button>
-            <div class="text-danger"
-                 th:if="${#fields.hasErrors('genreIds')}"
-                 th:errors="*{genreIds}">
-            </div>
+            <label>Genres (select at least one)</label>
+            <select name="genreIds" multiple size="4" required>
+                <option th:each="g : ${genres}" 
+                        th:value="${g.id()}" 
+                        th:text="${g.name()}">Genre</option>
+            </select>
+            <span class="error" th:if="${#fields.hasErrors('genreIds')}" th:errors="*{genreIds}"></span>
         </div>
 
-        <button type="submit"
-                class="btn btn-success"
-                th:text="${isNew} ? 'Add' : 'Save'">
-            Save
-        </button>
-        <button type="button"
-                class="btn btn-default"
-                onclick="history.back();">
-            Cancel
-        </button>
-        <a th:href="@{/}" class="btn btn-primary">Home</a>
+        <button type="submit" class="btn btn-success" th:text="${isNew} ? 'Add' : 'Save'">Save</button>
+        <a th:href="@{/}" class="btn btn-primary">Cancel</a>
     </form>
-</div>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function(){
-        const wrapper = document.getElementById('genres-wrapper');
-        const addBtn = document.getElementById('add-genre-btn');
-        const maxGenres = 5;
-        const minGenres = 1;
-
-        function updateControls(){
-            const rows = wrapper.querySelectorAll('.genre-row');
-            rows.forEach(row => {
-                row.querySelector('.remove-genre-btn').disabled = rows.length <= minGenres;
-            });
-            addBtn.disabled = rows.length >= maxGenres;
-        }
-
-        addBtn.addEventListener('click', function(){
-            const rows = wrapper.querySelectorAll('.genre-row');
-            if(rows.length < maxGenres){
-                const newRow = rows[0].cloneNode(true);
-                newRow.querySelector('select').selectedIndex = 0;
-                wrapper.appendChild(newRow);
-                updateControls();
-            }
-        });
-
-        wrapper.addEventListener('click', function(e){
-            if(e.target.matches('.remove-genre-btn')){
-                e.target.closest('.genre-row').remove();
-                updateControls();
-            }
-        });
-
-        updateControls();
-    });
-</script>
 </body>
 </html>

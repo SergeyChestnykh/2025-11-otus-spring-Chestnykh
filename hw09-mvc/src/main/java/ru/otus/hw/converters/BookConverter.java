@@ -46,6 +46,7 @@ public class BookConverter {
 
     public BookFormDto toFormDto(BookDto bookDto) {
         return new BookFormDto(
+                bookDto.id(),
                 bookDto.title(),
                 bookDto.author().id(),
                 bookDto.genres().stream()

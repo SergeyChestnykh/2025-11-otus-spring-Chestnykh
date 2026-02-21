@@ -12,7 +12,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(EntityNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public String handleNotFound(EntityNotFoundException unused, Model model) {
+    public String handleNotFound(EntityNotFoundException ignored, Model model) {
         model.addAttribute("errorTitle", "Not Found");
         model.addAttribute("errorMessage", "404 – Page Not Found");
         return "error";

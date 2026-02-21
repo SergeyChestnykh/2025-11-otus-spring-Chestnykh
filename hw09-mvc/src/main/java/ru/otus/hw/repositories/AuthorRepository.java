@@ -1,7 +1,7 @@
 package ru.otus.hw.repositories;
 
+import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
-import reactor.util.annotation.NonNull;
 import ru.otus.hw.models.Author;
 
 import java.util.List;

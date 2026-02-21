@@ -13,13 +13,14 @@ import ru.otus.hw.converters.CommentConverter;
 import ru.otus.hw.converters.GenreConverter;
 import ru.otus.hw.dto.BookDto;
 import ru.otus.hw.dto.GenreDto;
+import ru.otus.hw.exceptions.EntityNotFoundException;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @DataJpaTest
 @Import({
@@ -39,7 +40,7 @@ class BookServiceImplTest {
     @Test
     void findById_shouldReturnBookWithGenresAndAuthor() {
         assertThatCode(() -> {
-            BookDto book = bookService.findById(1L).orElseThrow();
+            BookDto book = bookService.findById(1L);
 
             assertThat(book.id()).isEqualTo(1L);
             assertThat(book.title()).isEqualTo("BookTitle_1");
@@ -52,11 +53,12 @@ class BookServiceImplTest {
     }
 
     @Test
-    void findById_shouldReturnEmptyForNonExistentId() {
-        assertThatCode(() -> {
-            Optional<BookDto> book = bookService.findById(999L);
-            assertThat(book).isEmpty();
-        }).doesNotThrowAnyException();
+    void findById_shouldThrowForNonExistentId() {
+        try {
+            bookService.findById(999L);
+        } catch (EntityNotFoundException e) {
+            assertEquals("Book with id 999 not found", e.getMessage());
+        }
     }
 
     @Test
@@ -81,8 +83,7 @@ class BookServiceImplTest {
         assertThatCode(() -> {
             BookDto newBook = bookService.insert("New book", 1, Set.of(1L, 2L));
 
-            Optional<BookDto> bookFromServiceOpt = bookService.findById(newBook.id());
-            BookDto bookFromService = bookFromServiceOpt.orElseThrow();
+            BookDto bookFromService = bookService.findById(newBook.id());
             assertThat(bookFromService.title()).isEqualTo("New book");
             assertThat(bookFromService.author().id()).isEqualTo(1L);
             assertThat(bookFromService.genres().stream().map(GenreDto::id))
@@ -95,7 +96,7 @@ class BookServiceImplTest {
         assertThatCode(() -> {
             bookService.update(1L, "Updated book", 3, Set.of(5L, 6L));
 
-            BookDto updatedBook = bookService.findById(1L).orElseThrow();
+            BookDto updatedBook = bookService.findById(1L);
             assertThat(updatedBook.title()).isEqualTo("Updated book");
             assertThat(updatedBook.author().id()).isEqualTo(3L);
             assertThat(updatedBook.genres().stream().map(GenreDto::id))
@@ -107,8 +108,11 @@ class BookServiceImplTest {
     void delete() {
         assertThatCode(() -> {
             bookService.deleteById(1L);
-
-            assertThat(bookService.findById(1L)).isEmpty();
         }).doesNotThrowAnyException();
+        try {
+            bookService.findById(1L);
+        } catch (EntityNotFoundException e) {
+            assertEquals("Book with id 1 not found", e.getMessage());
+        }
     }
 }

@@ -3,6 +3,8 @@ package ru.otus.hw.converters;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.otus.hw.dto.BookDto;
+import ru.otus.hw.dto.BookFormDto;
+import ru.otus.hw.dto.GenreDto;
 import ru.otus.hw.models.Book;
 
 import java.util.stream.Collectors;
@@ -13,18 +15,6 @@ public class BookConverter {
     private final AuthorConverter authorConverter;
 
     private final GenreConverter genreConverter;
-
-    public String bookToString(BookDto bookDto) {
-        var genresString = bookDto.genres().stream()
-                .map(genreConverter::genreToString)
-                .map("{%s}"::formatted)
-                .collect(Collectors.joining(", "));
-        return "Id: %d, title: %s, author: {%s}, genres: [%s]".formatted(
-                bookDto.id(),
-                bookDto.title(),
-                bookDto.author(),
-                genresString);
-    }
 
     public BookDto bookToDto(Book book) {
         return new BookDto(
@@ -52,5 +42,15 @@ public class BookConverter {
         );
 
         return book;
+    }
+
+    public BookFormDto toFormDto(BookDto bookDto) {
+        return new BookFormDto(
+                bookDto.title(),
+                bookDto.author().id(),
+                bookDto.genres().stream()
+                        .map(GenreDto::id)
+                        .toList()
+        );
     }
 }

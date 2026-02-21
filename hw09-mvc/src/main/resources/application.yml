@@ -9,3 +9,7 @@ spring:
     #        generate-ddl: true
     hibernate:
       ddl-auto: none
+  mvc:
+    hiddenmethod:
+      filter:
+        enabled: true

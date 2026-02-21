@@ -31,21 +31,9 @@ public class BookController {
 
     private static final String MODEL_ATTR_BOOK = "book";
 
-    private static final String MODEL_ATTR_BOOKS = "bookList";
-
-    private static final String MODEL_ATTR_AUTHORS = "authors";
-
-    private static final String MODEL_ATTR_GENRES = "genres";
-
-    private static final String MODEL_ATTR_COMMENTS = "comments";
-
     private static final String MODEL_ATTR_NEW = "isNew";
 
-    private static final String VIEW_LIST = "list";
-
-    private static final String VIEW_FORM = "edit";
-
-    private static final String VIEW_DETAIL = "detail";
+    private static final String EDIT_FORM = "edit";
 
     private final AuthorService authorService;
 
@@ -57,41 +45,41 @@ public class BookController {
 
     private final BookConverter bookConverter;
 
-    @ModelAttribute(MODEL_ATTR_AUTHORS)
+    @ModelAttribute("authors")
     public List<AuthorDto> populateAuthors() {
         return authorService.findAll();
     }
 
-    @ModelAttribute(MODEL_ATTR_GENRES)
+    @ModelAttribute("genres")
     public List<GenreDto> populateGenres() {
         return genreService.findAll();
     }
 
     @GetMapping("/")
     public String listBooks(Model model) {
-        model.addAttribute(MODEL_ATTR_BOOKS, bookService.findAll());
-        return VIEW_LIST;
+        model.addAttribute("bookList", bookService.findAll());
+        return "list";
     }
 
     @GetMapping("/book/{id}")
     public String showBook(@PathVariable long id, Model model) {
         model.addAttribute(MODEL_ATTR_BOOK, bookService.findById(id));
-        model.addAttribute(MODEL_ATTR_COMMENTS, commentService.findAllForBook(id));
-        return VIEW_DETAIL;
+        model.addAttribute("comments", commentService.findAllForBook(id));
+        return "detail";
     }
 
     @GetMapping("/book/new")
     public String newBookForm(Model model) {
         model.addAttribute(MODEL_ATTR_BOOK, new BookFormDto());
         model.addAttribute(MODEL_ATTR_NEW, true);
-        return VIEW_FORM;
+        return EDIT_FORM;
     }
 
     @GetMapping("/book/{id}/edit")
     public String editBookForm(@PathVariable long id, Model model) {
         model.addAttribute(MODEL_ATTR_BOOK, bookConverter.toFormDto(bookService.findById(id)));
         model.addAttribute(MODEL_ATTR_NEW, false);
-        return VIEW_FORM;
+        return EDIT_FORM;
     }
 
     @PostMapping("/book")
@@ -100,7 +88,7 @@ public class BookController {
                              Model model) {
         if (bindingResult.hasErrors()) {
             model.addAttribute(MODEL_ATTR_NEW, true);
-            return VIEW_FORM;
+            return EDIT_FORM;
         }
         bookService.insert(createDto.getTitle(), createDto.getAuthorId(), new HashSet<>(createDto.getGenreIds()));
         return REDIRECT_ROOT;
@@ -113,7 +101,7 @@ public class BookController {
                              Model model) {
         if (bindingResult.hasErrors()) {
             model.addAttribute(MODEL_ATTR_NEW, false);
-            return VIEW_FORM;
+            return EDIT_FORM;
         }
 
         bookService.update(id, updateDto.getTitle(),

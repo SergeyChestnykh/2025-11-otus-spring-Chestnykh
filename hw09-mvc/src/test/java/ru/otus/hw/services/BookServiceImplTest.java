@@ -106,9 +106,7 @@ class BookServiceImplTest {
 
     @Test
     void delete() {
-        assertThatCode(() -> {
-            bookService.deleteById(1L);
-        }).doesNotThrowAnyException();
+        assertThatCode(() -> bookService.deleteById(1L)).doesNotThrowAnyException();
         try {
             bookService.findById(1L);
         } catch (EntityNotFoundException e) {

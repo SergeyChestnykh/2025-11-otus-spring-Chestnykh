@@ -7,10 +7,6 @@ spring:
       data-locations: data.sql # без этого грузит из обоих файлов!!!
       schema-locations: schema.sql
 
-  shell:
-    interactive:
-      enabled: false
-
   jpa:
     generate-ddl: false
     #    generate-ddl: true

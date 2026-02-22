@@ -72,23 +72,9 @@
     </style>
 </head>
 <body>
-<h1 th:text="${book.title()}">Book Title</h1>
-
-<div class="book-info">
-    <p><strong>Author:</strong> <span th:text="${book.author().fullName()}">Author Name</span></p>
-    <p class="genres">
-        <strong>Genres:</strong>
-        <span th:each="g,stat : ${book.genres()}"
-              th:text="${g.name() + (stat.last ? '' : ', ')}">Genre</span>
-    </p>
-</div>
-
-<div class="actions">
-    <a th:href="@{/}" class="btn btn-primary">Home</a>
-    <a th:href="@{/book/{id}/edit(id=${book.id})}" class="btn btn-warning">Edit</a>
-    <form th:action="@{/book/{id}(id=${book.id})}" th:method="delete" style="display:inline;">
-        <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this book?');">Delete</button>
-    </form>
+<!-- Book details container - rendered by JavaScript -->
+<div id="book-container">
+    <p>Loading...</p>
 </div>
 
 <div class="comments">
@@ -97,7 +83,7 @@
     <!-- Add new comment form -->
     <div class="comment-form">
         <input type="text" id="commentText" placeholder="Enter your comment" required>
-        <button type="button" th:onclick="'addComment(' + ${book.id()} + ')'">
+        <button type="button" id="addCommentBtn">
             Add Comment
         </button>
     </div>
@@ -108,9 +94,74 @@
 </div>
 
 <script>
+    // Get book ID from URL path (format: /book/{id})
+    const pathParts = window.location.pathname.split('/');
+    const bookId = parseInt(pathParts[pathParts.length - 1], 10);
+
     document.addEventListener('DOMContentLoaded', function () {
-        loadComments([[${book.id()}]])
+        loadBook(bookId);
+        loadComments(bookId);
+        
+        // Set up add comment button
+        document.getElementById('addCommentBtn').addEventListener('click', function() {
+            addComment(bookId);
+        });
     })
+
+    function loadBook(id) {
+        fetch(`/api/book/${id}`)
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return res.json();
+            })
+            .then(book => {
+                renderBook(book);
+            })
+            .catch(err => {
+                console.error('Error loading book:', err);
+                document.getElementById('book-container').innerHTML = '<p>Error loading book details</p>';
+            });
+    }
+
+    function renderBook(book) {
+        const container = document.getElementById('book-container');
+        const genres = book.genres.map(g => g.name).join(', ');
+        
+        container.innerHTML = `
+            <h1>${escapeHtml(book.title)}</h1>
+            
+            <div class="book-info">
+                <p><strong>Author:</strong> <span>${escapeHtml(book.author.fullName)}</span></p>
+                <p class="genres">
+                    <strong>Genres:</strong>
+                    <span>${escapeHtml(genres)}</span>
+                </p>
+            </div>
+            
+            <div class="actions">
+                <a href="/" class="btn btn-primary">Home</a>
+                <a href="/book/${book.id}/edit" class="btn btn-warning">Edit</a>
+                <button type="button" class="btn btn-danger" onclick="deleteBook(${book.id})">Delete</button>
+            </div>
+        `;
+    }
+
+    function deleteBook(id) {
+        if (!confirm('Delete this book?')) return;
+        fetch(`/book/${id}`, {
+            method: 'DELETE'
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error('Delete error');
+            }
+            window.location.href = '/';
+        }).catch(err => {
+            console.error('Error deleting book:', err);
+            alert('Failed to delete book');
+        });
+    }
 
     function loadComments(id) {
         fetch(`/api/book/${id}/comments`)
@@ -144,9 +195,7 @@
             <div class="comment">
                 <p>${escapeHtml(c.text)}</p>
                 <div>
-                    <form style="display:inline;">
-                        <button type="button" class="btn btn-danger" onclick="deleteComment(${bookId}, ${c.id})">Delete</button>
-                    </form>
+                    <button type="button" class="btn btn-danger" onclick="deleteComment(${bookId}, ${c.id})">Delete</button>
                 </div>
             </div>
         `).join('');
@@ -169,6 +218,11 @@
     async function addComment(bookId) {
         const textInput = document.getElementById('commentText');
         const text = textInput.value.trim();
+
+        if (!text) {
+            alert('Please enter a comment');
+            return;
+        }
 
         try {
             const response = await fetch(`/api/book/${bookId}/comments`, {

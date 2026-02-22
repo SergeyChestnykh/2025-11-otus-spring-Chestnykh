@@ -1,59 +1,236 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html>
 <head>
     <meta charset="UTF-8">
-    <title th:text="${isNew} ? 'Add Book' : 'Edit Book'">Book Form</title>
+    <title>Book Form</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        form { max-width: 500px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input[type="text"], select { padding: 8px; width: 100%; box-sizing: border-box; margin-bottom: 5px; }
-        .btn { padding: 8px 15px; border: none; cursor: pointer; margin-right: 5px; }
-        .btn-success { background: #4CAF50; color: white; }
-        .btn-default { background: #ddd; }
-        .btn-primary { background: #2196F3; color: white; }
-        .error { color: red; font-size: 0.9em; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        form {
+            max-width: 500px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"], select {
+            padding: 8px;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 5px;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+
+        .btn-success {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-default {
+            background: #ddd;
+        }
+
+        .btn-primary {
+            background: #2196F3;
+            color: white;
+        }
+
+        .error {
+            color: red;
+            font-size: 0.9em;
+        }
+
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
-    <h1 th:text="${isNew} ? 'Add Book' : 'Edit Book'">Book Form</h1>
+<h1 id="page-title">Loading...</h1>
 
-    <form th:action="${isNew} ? @{/book} : @{/book/{id}(id=${book.id})}" 
-          th:object="${book}" 
-          method="post">
-        
-        <input type="hidden" th:unless="${isNew}" name="_method" value="put"/>
+<div id="form-container">
+    <p class="loading">Loading form...</p>
+</div>
 
-        <div class="form-group">
-            <label for="title">Title</label>
-            <input type="text" id="title" th:field="*{title}" required>
-            <span class="error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></span>
-        </div>
+<script>
+    // Determine if editing existing book or creating new one
+    const pathParts = window.location.pathname.split('/');
+    // URL format: /book/new or /book/{id}/edit
+    const isNew = pathParts[pathParts.length - 2] === 'new' || pathParts[pathParts.length - 1] === 'new';
+    const bookId = isNew ? null : parseInt(pathParts[pathParts.length - 2], 10);
 
-        <div class="form-group">
-            <label for="author">Author</label>
-            <select id="author" th:field="*{authorId}" required>
-                <option value="">Select author</option>
-                <option th:each="a : ${authors}" 
-                        th:value="${a.id()}" 
-                        th:text="${a.fullName()}">Author</option>
-            </select>
-            <span class="error" th:if="${#fields.hasErrors('authorId')}" th:errors="*{authorId}"></span>
-        </div>
+    let authors = [];
+    let genres = [];
+    let bookData = null;
 
-        <div class="form-group">
-            <label>Genres (select at least one)</label>
-            <select name="genreIds" multiple size="4" required>
-                <option th:each="g : ${genres}" 
-                        th:value="${g.id()}" 
-                        th:text="${g.name()}">Genre</option>
-            </select>
-            <span class="error" th:if="${#fields.hasErrors('genreIds')}" th:errors="*{genreIds}"></span>
-        </div>
+    document.addEventListener('DOMContentLoaded', async function () {
+        try {
+            const [authorsData, genresData] = await Promise.all([
+                fetch('/api/authors').then(res => res.json()),
+                fetch('/api/genres').then(res => res.json())
+            ]);
 
-        <button type="submit" class="btn btn-success" th:text="${isNew} ? 'Add' : 'Save'">Save</button>
-        <a th:href="@{/}" class="btn btn-primary">Cancel</a>
-    </form>
+            authors = authorsData;
+            genres = genresData;
+
+            // If editing, load book data
+            if (!isNew) {
+                bookData = await fetch(`/api/book/${bookId}`).then(res => res.json());
+            }
+
+            renderForm();
+        } catch (err) {
+            console.error('Error loading data:', err);
+            document.getElementById('form-container').innerHTML = '<p class="error">Error loading form data</p>';
+        }
+    });
+
+    function renderForm() {
+        const container = document.getElementById('form-container');
+        const titleEl = document.getElementById('page-title');
+
+        const isNewMode = isNew || !bookData;
+        titleEl.textContent = isNewMode ? 'Add Book' : 'Edit Book';
+
+        const selectedAuthorId = bookData ? bookData.author.id : '';
+        const selectedGenreIds = bookData ? bookData.genres.map(g => g.id) : [];
+
+        container.innerHTML = `
+                <form id="book-form">
+                    <div class="form-group">
+                        <label for="title">Title</label>
+                        <input type="text" id="title" value="${bookData ? escapeHtml(bookData.title) : ''}" required>
+                        <span class="error" id="title-error"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="author">Author</label>
+                        <select id="author" required>
+                            <option value="">Select author</option>
+                            ${authors.map(a => `
+                                <option value="${a.id}" ${a.id === selectedAuthorId ? 'selected' : ''}>
+                                    ${escapeHtml(a.fullName)}
+                                </option>
+                            `).join('')}
+                        </select>
+                        <span class="error" id="author-error"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Genres (select at least one)</label>
+                        <select name="genreIds" id="genres" multiple size="4" required>
+                            ${genres.map(g => `
+                                <option value="${g.id}" ${selectedGenreIds.includes(g.id) ? 'selected' : ''}>
+                                    ${escapeHtml(g.name)}
+                                </option>
+                            `).join('')}
+                        </select>
+                        <span class="error" id="genres-error"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-success">${isNewMode ? 'Add' : 'Save'}</button>
+                    <a href="/" class="btn btn-primary">Cancel</a>
+                </form>
+            `;
+
+        document.getElementById('book-form').addEventListener('submit', handleSubmit);
+    }
+
+    async function handleSubmit(e) {
+        e.preventDefault();
+
+        // Clear previous errors
+        document.querySelectorAll('.error').forEach(el => el.textContent = '');
+
+        const title = document.getElementById('title').value.trim();
+        const authorId = parseInt(document.getElementById('author').value, 10);
+        const genreSelect = document.getElementById('genres');
+        const selectedGenres = Array.from(genreSelect.selectedOptions).map(opt => parseInt(opt.value, 10));
+
+        // Validation
+        let hasError = false;
+
+        if (!title || title.length < 2) {
+            document.getElementById('title-error').textContent = 'Title must be at least 2 characters';
+            hasError = true;
+        }
+
+        if (!authorId) {
+            document.getElementById('author-error').textContent = 'Please select an author';
+            hasError = true;
+        }
+
+        if (selectedGenres.length === 0) {
+            document.getElementById('genres-error').textContent = 'Please select at least one genre';
+            hasError = true;
+        }
+
+        if (hasError) return;
+
+        const bookPayload = {
+            title: title,
+            authorId: authorId,
+            genreIds: selectedGenres
+        };
+
+        try {
+            const url = isNew || !bookData ? '/api/book' : `/api/book/${bookId}`;
+            const method = isNew || !bookData ? 'POST' : 'PUT';
+
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(bookPayload)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                if (errorData.errors) {
+                    errorData.errors.forEach(err => {
+                        const field = err.field;
+                        const message = err.defaultMessage;
+                        const errorEl = document.getElementById(`${field}-error`);
+                        if (errorEl) {
+                            errorEl.textContent = message;
+                        }
+                    });
+                    return;
+                }
+                throw new Error('Save error');
+            }
+
+            window.location.href = '/';
+        } catch (err) {
+            console.error('Error saving book:', err);
+            alert('Failed to save book');
+        }
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+</script>
 </body>
 </html>

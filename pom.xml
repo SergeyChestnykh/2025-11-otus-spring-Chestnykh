@@ -19,6 +19,7 @@
         <module>hw06-jpa</module>
         <module>hw07-data-jpa</module>
         <module>hw09-mvc</module>
+        <module>hw10-ajax</module>
     </modules>
 
 </project>

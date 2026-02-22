@@ -96,10 +96,10 @@
 
     <!-- Add new comment form -->
     <div class="comment-form">
-        <form th:action="@{/book/{bookId}/comment(bookId=${book.id})}" method="post">
-            <input type="text" name="text" placeholder="Enter your comment" required>
-            <button type="submit" class="btn btn-success">Add Comment</button>
-        </form>
+        <input type="text" id="commentText" placeholder="Enter your comment" required>
+        <button type="button" th:onclick="'addComment(' + ${book.id()} + ')'">
+            Add Comment
+        </button>
     </div>
 
     <!-- Comments list -->
@@ -164,6 +164,31 @@
                 loadComments(bookId)
             }
         )
+    }
+
+    async function addComment(bookId) {
+        const textInput = document.getElementById('commentText');
+        const text = textInput.value.trim();
+
+        try {
+            const response = await fetch(`/api/book/${bookId}/comments`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({text})
+            });
+
+            if (!response.ok) {
+                throw new Error('Add comment error');
+            }
+
+            textInput.value = '';
+            await loadComments(bookId);
+        } catch (error) {
+            console.error(error);
+            alert('Comment not added');
+        }
     }
 
     function escapeHtml(text) {

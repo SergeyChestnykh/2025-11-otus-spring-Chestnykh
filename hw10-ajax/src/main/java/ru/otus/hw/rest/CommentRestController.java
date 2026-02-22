@@ -21,8 +21,8 @@ public class CommentRestController {
         return commentService.findAllForBook(id);
     }
 
-    @DeleteMapping("/api/book/{bookId}/comments/{commentId}")
-    public void deleteComment(@PathVariable Long bookId, @PathVariable Long commentId) {
+    @DeleteMapping("/api/comments/{commentId}")
+    public void deleteComment(@PathVariable Long commentId) {
         commentService.deleteById(commentId);
     }
 

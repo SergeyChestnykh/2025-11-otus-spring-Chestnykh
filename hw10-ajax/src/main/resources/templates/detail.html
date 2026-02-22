@@ -154,7 +154,7 @@
 
     function deleteComment(bookId, commentId) {
         if (!confirm('Delete comment?')) return;
-        fetch(`/api/book/${bookId}/comments/${commentId}`, {
+        fetch(`/api/comments/${commentId}`, {
             method: 'DELETE'
         }).then(
             response => {

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html>
 <head>
     <meta charset="UTF-8">
     <title>Book Details</title>
@@ -101,9 +101,9 @@
     document.addEventListener('DOMContentLoaded', function () {
         loadBook(bookId);
         loadComments(bookId);
-        
+
         // Set up add comment button
-        document.getElementById('addCommentBtn').addEventListener('click', function() {
+        document.getElementById('addCommentBtn').addEventListener('click', function () {
             addComment(bookId);
         });
     })
@@ -128,7 +128,7 @@
     function renderBook(book) {
         const container = document.getElementById('book-container');
         const genres = book.genres.map(g => g.name).join(', ');
-        
+
         container.innerHTML = `
             <h1>${escapeHtml(book.title)}</h1>
             
@@ -150,7 +150,7 @@
 
     function deleteBook(id) {
         if (!confirm('Delete this book?')) return;
-        fetch(`/book/${id}`, {
+        fetch(`/api/book/${id}`, {
             method: 'DELETE'
         }).then(response => {
             if (!response.ok) {

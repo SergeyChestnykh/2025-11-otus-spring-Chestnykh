@@ -24,8 +24,11 @@ import java.util.Map;
 @RequiredArgsConstructor
 @RestController
 public class BookRestController {
+
     private final BookService bookService;
+
     private final AuthorService authorService;
+
     private final GenreService genreService;
 
     @GetMapping("/api/book")
@@ -60,7 +63,7 @@ public class BookRestController {
         List<Long> genreIds = ((List<Number>) bookData.get("genreIds")).stream()
                 .map(Number::longValue)
                 .toList();
-        
+
         bookService.insert(title, authorId, new HashSet<>(genreIds));
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
@@ -68,11 +71,11 @@ public class BookRestController {
     @PutMapping("/api/book/{id}")
     ResponseEntity<BookDto> updateBook(@PathVariable long id, @RequestBody Map<String, Object> bookData) {
         String title = (String) bookData.get("title");
-        Long authorId = ((Number) bookData.get("authorId")).longValue();
+        long authorId = ((Number) bookData.get("authorId")).longValue();
         List<Long> genreIds = ((List<Number>) bookData.get("genreIds")).stream()
                 .map(Number::longValue)
                 .toList();
-        
+
         bookService.update(id, title, authorId, new HashSet<>(genreIds));
         return ResponseEntity.ok().build();
     }

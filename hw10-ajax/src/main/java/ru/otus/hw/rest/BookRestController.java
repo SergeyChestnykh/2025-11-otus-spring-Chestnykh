@@ -10,9 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import ru.otus.hw.dto.AuthorDto;
 import ru.otus.hw.dto.BookDto;
-import ru.otus.hw.services.AuthorService;
 import ru.otus.hw.services.BookService;
 
 import java.util.HashSet;
@@ -24,8 +22,6 @@ import java.util.Map;
 public class BookRestController {
 
     private final BookService bookService;
-
-    private final AuthorService authorService;
 
     @GetMapping("/api/book")
     List<BookDto> getAll() {
@@ -40,11 +36,6 @@ public class BookRestController {
     @DeleteMapping("/api/book/{id}")
     void deleteById(@PathVariable long id) {
         bookService.deleteById(id);
-    }
-
-    @GetMapping("/api/authors")
-    List<AuthorDto> getAllAuthors() {
-        return authorService.findAll();
     }
 
     @PostMapping("/api/book")

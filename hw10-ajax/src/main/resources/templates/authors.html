@@ -15,21 +15,72 @@
 </head>
 <body>
     <h1>Authors</h1>
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Full Name</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr th:each="author : ${authorList}">
-                <td th:text="${author.id()}">1</td>
-                <td th:text="${author.fullName()}">Author Name</td>
-            </tr>
-        </tbody>
-    </table>
+    <div id="authors-container">
+        <p class="loading">Loading...</p>
+    </div>
     <br>
     <a th:href="@{/}" class="btn" style="background: #2196F3;">Home</a>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            loadAuthors();
+        });
+
+        function loadAuthors() {
+            fetch('/api/authors')
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return res.json();
+                })
+                .then(authors => {
+                    renderAuthors(authors);
+                })
+                .catch(err => {
+                    console.error('Error loading authors:', err);
+                    document.getElementById('authors-container').innerHTML = '<p class="error">Error loading authors</p>';
+                });
+        }
+
+        function renderAuthors(authors) {
+            const container = document.getElementById('authors-container');
+
+            if (!authors || authors.length === 0) {
+                container.innerHTML = '<p>No authors found.</p>';
+                return;
+            }
+
+            const tableHtml = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Full Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                ${
+                authors.map(author => {
+                    return `
+                    <tr>
+                        <td>${escapeHtml(author.id)}</td>
+                        <td>${escapeHtml(author.fullName)}</td>
+                    </tr>
+                    `;
+                }).join('')}
+                </tbody>
+            </table>
+        `;
+
+            container.innerHTML = tableHtml;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
 </body>
 </html>

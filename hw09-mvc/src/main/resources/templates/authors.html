@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Library</title>
+    <title>Library - Authors</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
         table { border-collapse: collapse; width: 100%; }
@@ -14,34 +14,22 @@
     </style>
 </head>
 <body>
-    <h1>Books</h1>
+    <h1>Authors</h1>
     <table>
         <thead>
             <tr>
                 <th>ID</th>
-                <th>Author</th>
-                <th>Title</th>
-                <th>Genres</th>
+                <th>Full Name</th>
             </tr>
         </thead>
         <tbody>
-            <tr th:each="book : ${bookList}">
-                <td>
-                    <a th:href="@{/book/{id}(id=${book.id})}" th:text="${book.id}">1</a>
-                </td>
-                <td th:text="${book.author.fullName()}">Author</td>
-                <td th:text="${book.title()}">Title</td>
-                <td>
-                    <span th:each="g,stat : ${book.genres()}"
-                          th:text="${g.name() + (stat.last ? '' : ', ')}">Genre</span>
-                </td>
+            <tr th:each="author : ${authorList}">
+                <td th:text="${author.id()}">1</td>
+                <td th:text="${author.fullName()}">Author Name</td>
             </tr>
         </tbody>
     </table>
     <br>
-    <a th:href="@{/book/new}" class="btn">New Book</a>
-    <a th:href="@{/authors}" class="btn" style="background: #FF9800;">Authors</a>
-    <a th:href="@{/genres}" class="btn" style="background: #9C27B0;">Genres</a>
     <a th:href="@{/}" class="btn" style="background: #2196F3;">Home</a>
 </body>
 </html>

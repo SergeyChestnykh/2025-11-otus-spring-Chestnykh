@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -93,10 +92,10 @@ class CommentRestControllerTest {
     @Test
     void addComment_WithValidText_CreatesSuccessfully() throws Exception {
         String requestBody = """
-            {
-                "text": "This is a valid comment"
-            }
-            """;
+                {
+                    "text": "This is a valid comment"
+                }
+                """;
 
         CommentDto commentDto = new CommentDto(1L, "This is a valid comment");
         when(commentService.insert(eq(1L), eq("This is a valid comment"))).thenReturn(commentDto);

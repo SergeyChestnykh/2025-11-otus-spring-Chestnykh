@@ -10,8 +10,6 @@ import ru.otus.hw.services.AuthorService;
 @RequiredArgsConstructor
 public class AuthorController {
 
-    private static final String REDIRECT_ROOT = "redirect:/";
-
     private final AuthorService authorService;
 
     @GetMapping("/authors")

@@ -44,11 +44,13 @@
 
         <div class="form-group">
             <label>Genres (select at least one)</label>
-            <select name="genreIds" multiple size="4" required>
-                <option th:each="g : ${genres}" 
-                        th:value="${g.id()}" 
-                        th:text="${g.name()}">Genre</option>
-            </select>
+            <label>
+                <select th:field="*{genreIds}" multiple size="4" required>
+                    <option th:each="g : ${genres}"
+                            th:value="${g.id()}"
+                            th:text="${g.name()}">Genre</option>
+                </select>
+            </label>
             <span class="error" th:if="${#fields.hasErrors('genreIds')}" th:errors="*{genreIds}"></span>
         </div>
 

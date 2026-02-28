@@ -12,10 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import ru.otus.hw.dto.AuthorDto;
 import ru.otus.hw.dto.BookDto;
-import ru.otus.hw.dto.GenreDto;
 import ru.otus.hw.services.AuthorService;
 import ru.otus.hw.services.BookService;
-import ru.otus.hw.services.GenreService;
 
 import java.util.HashSet;
 import java.util.List;
@@ -28,8 +26,6 @@ public class BookRestController {
     private final BookService bookService;
 
     private final AuthorService authorService;
-
-    private final GenreService genreService;
 
     @GetMapping("/api/book")
     List<BookDto> getAll() {
@@ -49,11 +45,6 @@ public class BookRestController {
     @GetMapping("/api/authors")
     List<AuthorDto> getAllAuthors() {
         return authorService.findAll();
-    }
-
-    @GetMapping("/api/genres")
-    List<GenreDto> getAllGenres() {
-        return genreService.findAll();
     }
 
     @PostMapping("/api/book")

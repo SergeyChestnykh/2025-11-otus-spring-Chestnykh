@@ -3,19 +3,17 @@ package ru.otus.hw.repositories;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest;
 import ru.otus.hw.models.Author;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Репозиторий авторов ")
-@DataJpaTest
-class JpaAuthorRepositoryTest {
+@DataR2dbcTest
+class ReactiveAuthorRepositoryTest {
 
     @Autowired
     private AuthorRepository authorRepository;
@@ -23,20 +21,22 @@ class JpaAuthorRepositoryTest {
     @DisplayName("должен вернуть всех авторов")
     @Test
     void findAll() {
-        List<Author> resultAuthors = authorRepository.findAll();
+        var resultAuthors = authorRepository.findAll()
+                .collectList()
+                .block();
 
         assertEquals(getDbAuthors(), resultAuthors);
     }
 
-    @DisplayName(" должен вернуть автора по id")
+    @DisplayName("должен вернуть автора по id")
     @Test
     void findById() {
         Author expectedAuthor = getDbAuthors().get(2);
 
-        Optional<Author> resultAuthor = authorRepository.findById(expectedAuthor.getId());
+        var resultAuthorMono = authorRepository.findById(expectedAuthor.getId());
+        var resultAuthor = resultAuthorMono.block();
 
-        assertTrue(resultAuthor.isPresent());
-        assertEquals(expectedAuthor, resultAuthor.get());
+        assertEquals(expectedAuthor, resultAuthor);
     }
 
     private static List<Author> getDbAuthors() {

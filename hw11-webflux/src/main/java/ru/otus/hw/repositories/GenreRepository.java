@@ -1,16 +1,16 @@
 package ru.otus.hw.repositories;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.lang.NonNull;
+import reactor.core.publisher.Flux;
 import ru.otus.hw.models.Genre;
 
-import java.util.List;
 import java.util.Set;
 
-public interface GenreRepository extends JpaRepository<Genre, Long> {
+public interface GenreRepository extends ReactiveCrudRepository<Genre, Long> {
     @Override
     @NonNull
-    List<Genre> findAll();
+    Flux<Genre> findAll();
 
-    List<Genre> findAllByIdIn(Set<Long> ids);
+    Flux<Genre> findAllByIdIn(Set<Long> ids);
 }

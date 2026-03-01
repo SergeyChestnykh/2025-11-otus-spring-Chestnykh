@@ -20,6 +20,7 @@
         <module>hw07-data-jpa</module>
         <module>hw08-mongo</module>
         <module>hw09-mvc</module>
+        <module>hw10-ajax</module>
     </modules>
 
 </project>

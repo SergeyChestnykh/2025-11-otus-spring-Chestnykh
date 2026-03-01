@@ -2,6 +2,7 @@ package ru.otus.hw.services;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
@@ -13,13 +14,12 @@ import ru.otus.hw.converters.CommentConverter;
 import ru.otus.hw.converters.GenreConverter;
 import ru.otus.hw.dto.CommentDto;
 
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
-@DataJpaTest
+@DataR2dbcTest
 @Import({
         CommentServiceImpl.class,
         CommentConverter.class,
@@ -37,8 +37,11 @@ class CommentServiceImplTest {
     @Test
     void findAllForBook() {
         assertThatCode(() -> {
-            List<CommentDto> all = commentService.findAllForBook(1L);
-            assertThat(all.stream().map(CommentDto::text).toList())
+            var commentTextList = commentService.findAllForBook(1L)
+                    .map(CommentDto::text)
+                    .collectList()
+                    .block();
+            assertThat(commentTextList)
                     .containsExactlyInAnyOrder("First comment b1", "Second comment b1");
         }).doesNotThrowAnyException();
     }
@@ -46,7 +49,7 @@ class CommentServiceImplTest {
     @Test
     void find() {
         assertThatCode(() -> {
-            Optional<CommentDto> comment = commentService.find(1L);
+            Optional<CommentDto> comment = commentService.find(1L).blockOptional();
             assertThat(comment).isNotEmpty();
             assertThat(comment.orElseThrow().text()).isNotEmpty();
         }).doesNotThrowAnyException();
@@ -55,9 +58,9 @@ class CommentServiceImplTest {
     @Test
     void insert() {
         assertThatCode(() -> {
-            CommentDto newComment = commentService.insert(1L, "New comment");
+            CommentDto newComment = commentService.insert(1L, "New comment").block();
 
-            CommentDto comment = commentService.find(newComment.id()).orElseThrow();
+            CommentDto comment = commentService.find(newComment.id()).block();
             assertThat(comment.text()).isEqualTo("New comment");
             assertThat(comment.id()).isGreaterThan(0);
         }).doesNotThrowAnyException();
@@ -68,9 +71,9 @@ class CommentServiceImplTest {
         assertThatCode(() -> {
             String updatedText = "Updated comment text";
 
-            CommentDto updatedComment = commentService.update(1L, updatedText);
+            CommentDto updatedComment = commentService.update(1L, updatedText).block();
 
-            CommentDto comment = commentService.find(updatedComment.id()).orElseThrow();
+            CommentDto comment = commentService.find(updatedComment.id()).block();
             assertThat(comment.text()).isEqualTo(updatedText);
         }).doesNotThrowAnyException();
     }
@@ -78,11 +81,11 @@ class CommentServiceImplTest {
     @Test
     void delete() {
         assertThatCode(() -> {
-            assertThat(commentService.find(1L)).isNotEmpty();
+            assertThat(commentService.find(1L).blockOptional()).isNotEmpty();
 
-            commentService.deleteById(1L);
+            commentService.deleteById(1L).block();
 
-            assertThat(commentService.find(1L)).isEmpty();
+            assertThat(commentService.find(1L).blockOptional()).isEmpty();
         }).doesNotThrowAnyException();
     }
 }

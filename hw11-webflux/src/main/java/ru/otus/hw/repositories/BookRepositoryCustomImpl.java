@@ -25,100 +25,110 @@ public class BookRepositoryCustomImpl implements BookRepositoryCustom {
 
     @Override
     public Flux<Book> findAllWithAuthorAndGenres() {
-
         String sql = """
-                    SELECT 
-                        b.id as b_id,
-                        b.title as b_title,
-                        a.id as a_id,
-                        a.full_name as a_name,
-                        g.id as g_id,
-                        g.name as g_name
-                    FROM books b
-                    JOIN authors a ON b.author_id = a.id
-                    LEFT JOIN books_genres bg ON bg.book_id = b.id
-                    LEFT JOIN genres g ON g.id = bg.genre_id
-                    ORDER BY b.id
+                SELECT 
+                    b.id as b_id,
+                    b.title as b_title,
+                    a.id as a_id,
+                    a.full_name as a_name,
+                    g.id as g_id,
+                    g.name as g_name
+                FROM books b
+                JOIN authors a ON b.author_id = a.id
+                LEFT JOIN books_genres bg ON bg.book_id = b.id
+                LEFT JOIN genres g ON g.id = bg.genre_id
+                ORDER BY b.id
                 """;
 
-        return template.getDatabaseClient()
-                .sql(sql)
-                .map(mapRow())
-                .all()
+        return queryBooks(sql, null)
                 .collectList()
                 .flatMapMany(this::aggregate);
     }
 
+
     @Override
     public Mono<Book> findByIdWithAuthorAndGenres(long id) {
-
         String sql = """
-                    SELECT 
-                        b.id as b_id,
-                        b.title as b_title,
-                        a.id as a_id,
-                        a.full_name as a_name,
-                        g.id as g_id,
-                        g.name as g_name
-                    FROM books b
-                    JOIN authors a ON b.author_id = a.id
-                    LEFT JOIN books_genres bg ON bg.book_id = b.id
-                    LEFT JOIN genres g ON g.id = bg.genre_id
-                    WHERE b.id = :id
-                    ORDER BY b.id
+                SELECT 
+                    b.id as b_id,
+                    b.title as b_title,
+                    a.id as a_id,
+                    a.full_name as a_name,
+                    g.id as g_id,
+                    g.name as g_name
+                FROM books b
+                JOIN authors a ON b.author_id = a.id
+                LEFT JOIN books_genres bg ON bg.book_id = b.id
+                LEFT JOIN genres g ON g.id = bg.genre_id
+                WHERE b.id = :id
+                ORDER BY b.id
                 """;
 
-        return template.getDatabaseClient()
-                .sql(sql)
-                .bind("id", id)
-                .map(mapRow())
-                .all()
+        return queryBooks(sql, Map.of("id", id))
                 .collectList()
                 .flatMap(this::aggregateSingle);
     }
 
     @Override
     public Mono<Book> save(Book book) {
-        // 1. Вставляем книгу без RETURNING
-        return template.getDatabaseClient().sql("""
-                    insert into books(title, author_id)
-                    values (:title, :authorId)
-                    """)
-                .bind("title", book.getTitle())
-                .bind("authorId", book.getAuthor().getId())
-                .fetch()
-                .rowsUpdated()
-                // 2. После вставки делаем SELECT для получения id
-                .then(template.getDatabaseClient().sql("""
-                    select id from books
-                    where title = :title and author_id = :authorId
-                    order by id desc
-                    limit 1
-                    """)
-                        .bind("title", book.getTitle())
-                        .bind("authorId", book.getAuthor().getId())
-                        .map((row, meta) -> row.get("id", Long.class))
-                        .one()
-                )
-                .flatMap(bookId ->
-                        // вставляем связи книга-жанры
-                        Flux.fromIterable(book.getGenres())
-                                .flatMap(genre ->
-                                        template.getDatabaseClient().sql("""
-                                        insert into books_genres(book_id, genre_id)
-                                        values (:bookId, :genreId)
-                                        """)
-                                                .bind("bookId", bookId)
-                                                .bind("genreId", genre.getId())
-                                                .fetch()
-                                                .rowsUpdated()
-                                )
-                                .then(Mono.just(bookId))
-                )
+        return insertBook(book)
+                .flatMap(bookId -> insertBookGenres(bookId, book.getGenres())
+                        .thenReturn(bookId))
                 .map(bookId -> {
                     book.setId(bookId);
                     return book;
                 });
+    }
+
+    private Flux<FlatRow> queryBooks(String sql, Map<String, Object> params) {
+        var client = template.getDatabaseClient().sql(sql);
+
+        if (params != null) {
+            for (var entry : params.entrySet()) {
+                client = client.bind(entry.getKey(), entry.getValue());
+            }
+        }
+
+        return client
+                .map(mapRow())
+                .all();
+    }
+
+    private Mono<Long> insertBook(Book book) {
+        return template.getDatabaseClient().sql("""
+                        insert into books(title, author_id)
+                        values (:title, :authorId)
+                        """)
+                .bind("title", book.getTitle())
+                .bind("authorId", book.getAuthor().getId())
+                .fetch()
+                .rowsUpdated()
+                .then(template.getDatabaseClient().sql("""
+                                select id from books
+                                where title = :title and author_id = :authorId
+                                order by id desc
+                                limit 1
+                                """)
+                        .bind("title", book.getTitle())
+                        .bind("authorId", book.getAuthor().getId())
+                        .map((row, meta) -> row.get("id", Long.class))
+                        .one()
+                );
+    }
+
+    private Mono<Void> insertBookGenres(Long bookId, List<Genre> genres) {
+        return Flux.fromIterable(genres)
+                .flatMap(genre ->
+                        template.getDatabaseClient().sql("""
+                                        insert into books_genres(book_id, genre_id)
+                                        values (:bookId, :genreId)
+                                        """)
+                                .bind("bookId", bookId)
+                                .bind("genreId", genre.getId())
+                                .fetch()
+                                .rowsUpdated()
+                )
+                .then();
     }
 
 
@@ -169,9 +179,7 @@ public class BookRepositoryCustomImpl implements BookRepositoryCustom {
         if (rows.isEmpty()) {
             return Mono.empty();
         }
-
         FlatRow first = rows.get(0);
-
         Author author = new Author(first.authorId(), first.authorName());
         List<Genre> genres = new ArrayList<>();
 

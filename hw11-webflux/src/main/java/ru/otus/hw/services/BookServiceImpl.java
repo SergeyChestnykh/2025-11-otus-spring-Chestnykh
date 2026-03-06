@@ -67,34 +67,44 @@ public class BookServiceImpl implements BookService {
                                long authorId,
                                Set<Long> genresIds) {
 
-        if (genresIds == null || genresIds.isEmpty()) {
-            return Mono.error(new IllegalArgumentException("Genres ids must not be null or empty"));
-        }
+        validateGenres(genresIds);
 
-        Mono<Author> authorMono = authorRepository.findById(authorId)
+        return Mono.zip(
+                        findAuthor(authorId),
+                        findGenres(genresIds)
+                )
+                .flatMap(tuple -> saveBook(id, title, tuple.getT1(), tuple.getT2()))
+                .map(bookConverter::bookToDto);
+    }
+
+    private void validateGenres(Set<Long> genresIds) {
+        if (genresIds == null || genresIds.isEmpty()) {
+            throw new IllegalArgumentException("Genres ids must not be null or empty");
+        }
+    }
+
+    private Mono<Author> findAuthor(long authorId) {
+        return authorRepository.findById(authorId)
                 .switchIfEmpty(Mono.error(
                         new EntityNotFoundException("Author with id %d not found".formatted(authorId))
                 ));
+    }
 
-        Mono<List<Genre>> genresMono = genreRepository.findAllByIdIn(genresIds)
+    private Mono<List<Genre>> findGenres(Set<Long> genresIds) {
+        return genreRepository.findAllByIdIn(genresIds)
                 .collectList()
                 .flatMap(genres -> {
                     if (genres.size() != genresIds.size()) {
-                        return Mono.error(
-                                new EntityNotFoundException("One or more genres not found: %s".formatted(genresIds)));
+                        return Mono.error(new EntityNotFoundException(
+                                "One or more genres not found: %s".formatted(genresIds)
+                        ));
                     }
                     return Mono.just(genres);
                 });
+    }
 
-        return Mono.zip(authorMono, genresMono)
-                .flatMap(tuple -> {
-                    Author author = tuple.getT1();
-                    List<Genre> genres = tuple.getT2();
-
-                    Book book = new Book(id, title, author, genres);
-
-                    return bookRepositoryCustom.save(book);
-                })
-                .map(bookConverter::bookToDto);
+    private Mono<Book> saveBook(long id, String title, Author author, List<Genre> genres) {
+        Book book = new Book(id, title, author, genres);
+        return bookRepositoryCustom.save(book);
     }
 }

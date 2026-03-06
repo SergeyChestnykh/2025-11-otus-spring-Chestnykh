@@ -29,6 +29,7 @@ class ReactiveCommentRepositoryTest {
     void add() {
         Comment comment = new Comment();
         comment.setText("My comment");
+        comment.setBookId(1L);
 
         Comment returnedComment = commentRepository.save(comment)
                 .block();

@@ -2,12 +2,17 @@ package ru.otus.hw.rest;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.http.MediaType;
+import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.reactive.server.WebTestClient;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import ru.otus.hw.converters.AuthorConverter;
+import ru.otus.hw.converters.BookConverter;
+import ru.otus.hw.converters.GenreConverter;
 import ru.otus.hw.dto.AuthorDto;
 import ru.otus.hw.dto.BookDto;
+import ru.otus.hw.dto.BookFormDto;
 import ru.otus.hw.dto.GenreDto;
 import ru.otus.hw.services.BookService;
 
@@ -16,126 +21,113 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(BookRestController.class)
+@WebFluxTest({BookRestController.class, BookConverter.class, AuthorConverter.class, GenreConverter.class})
 class BookRestControllerTest {
 
     @Autowired
-    private MockMvc mockMvc;
+    private WebTestClient webTestClient;
+
+    @Autowired
+    private BookConverter bookConverter;
 
     @MockitoBean
     private BookService bookService;
 
     @Test
-    void getAllBooks_ReturnsBooksList() throws Exception {
+    void getAllBooks_ReturnsBooksList() {
         AuthorDto author = new AuthorDto(1L, "Author Name");
         GenreDto genre = new GenreDto(1L, "Genre Name");
         BookDto book = new BookDto(1L, "Book Title", author, List.of(genre));
 
-        when(bookService.findAll()).thenReturn(List.of(book));
+        when(bookService.findAll()).thenReturn(Flux.fromIterable(List.of(book)));
 
-        mockMvc.perform(get("/api/book"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1))
-                .andExpect(jsonPath("$[0].title").value("Book Title"))
-                .andExpect(jsonPath("$[0].author.fullName").value("Author Name"))
-                .andExpect(jsonPath("$[0].genres[0].name").value("Genre Name"));
+        webTestClient.get().uri("/api/book")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBodyList(BookDto.class)
+                .contains(book);
 
         verify(bookService).findAll();
     }
 
     @Test
-    void getAllBooks_ReturnsEmptyList() throws Exception {
-        when(bookService.findAll()).thenReturn(Collections.emptyList());
+    void getAllBooks_ReturnsEmptyList() {
+        when(bookService.findAll()).thenReturn(Flux.empty());
 
-        mockMvc.perform(get("/api/book"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$").isEmpty());
+        webTestClient.get().uri("/api/book")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBodyList(BookDto.class)
+                .isEqualTo(Collections.emptyList());
 
         verify(bookService).findAll();
     }
 
     @Test
-    void getBookById_ReturnsBook() throws Exception {
+    void getBookById_ReturnsBook() {
         AuthorDto author = new AuthorDto(1L, "Author Name");
         GenreDto genre = new GenreDto(1L, "Genre Name");
         BookDto book = new BookDto(1L, "Book Title", author, List.of(genre));
 
-        when(bookService.findById(1L)).thenReturn(book);
+        when(bookService.findById(1L)).thenReturn(Mono.just(book));
 
-        mockMvc.perform(get("/api/book/1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.title").value("Book Title"))
-                .andExpect(jsonPath("$.author.fullName").value("Author Name"));
+        webTestClient.get().uri("/api/book/1")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(BookDto.class)
+                .isEqualTo(book);
 
         verify(bookService).findById(1L);
     }
 
     @Test
-    void deleteBook_DeletesSuccessfully() throws Exception {
-        doNothing().when(bookService).deleteById(1L);
-
-        mockMvc.perform(delete("/api/book/1"))
-                .andExpect(status().isOk());
+    void deleteBook_DeletesSuccessfully() {
+        webTestClient.delete().uri("/api/book/1")
+                .exchange()
+                .expectStatus().isOk();
 
         verify(bookService).deleteById(1L);
     }
 
     @Test
-    void createBook_CreatesSuccessfully() throws Exception {
-        String requestBody = """
-            {
-                "title": "New Book",
-                "authorId": 1,
-                "genreIds": [1, 2]
-            }
-            """;
-
+    void createBook_CreatesSuccessfully() {
         AuthorDto author = new AuthorDto(1L, "Author Name");
         GenreDto genre = new GenreDto(1L, "Genre Name");
         BookDto createdBook = new BookDto(1L, "New Book", author, List.of(genre));
+        BookFormDto formDto = bookConverter.toFormDto(createdBook);
 
-        when(bookService.insert(eq("New Book"), eq(1L), any())).thenReturn(createdBook);
+        when(bookService.insert(eq("New Book"), eq(1L), any()))
+                .thenReturn(Mono.just(createdBook));
 
-        mockMvc.perform(post("/api/book")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andExpect(status().isCreated());
+        webTestClient.post().uri("/api/book")
+                .bodyValue(formDto)
+                .exchange()
+                .expectStatus().isCreated()
+                .expectBody(BookDto.class)
+                .isEqualTo(createdBook);
 
         verify(bookService).insert(eq("New Book"), eq(1L), any());
     }
 
     @Test
-    void updateBook_UpdatesSuccessfully() throws Exception {
-        String requestBody = """
-            {
-                "title": "Updated Book",
-                "authorId": 2,
-                "genreIds": [1]
-            }
-            """;
-
+    void updateBook_UpdatesSuccessfully() {
         AuthorDto author = new AuthorDto(2L, "Updated Author");
         GenreDto genre = new GenreDto(1L, "Genre Name");
         BookDto updatedBook = new BookDto(1L, "Updated Book", author, List.of(genre));
+        BookFormDto formDto = bookConverter.toFormDto(updatedBook);
 
-        when(bookService.update(eq(1L), eq("Updated Book"), eq(2L), any())).thenReturn(updatedBook);
+        when(bookService.update(eq(1L), eq("Updated Book"), eq(2L), any()))
+                .thenReturn(Mono.just(updatedBook));
 
-        mockMvc.perform(put("/api/book/1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andExpect(status().isOk());
+        webTestClient.put().uri("/api/book/1")
+                .bodyValue(formDto)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(BookDto.class)
+                .isEqualTo(updatedBook);
 
         verify(bookService).update(eq(1L), eq("Updated Book"), eq(2L), any());
     }

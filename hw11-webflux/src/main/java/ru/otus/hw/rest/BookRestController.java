@@ -1,5 +1,6 @@
 package ru.otus.hw.rest;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,12 +11,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import ru.otus.hw.dto.BookDto;
+import ru.otus.hw.dto.BookFormDto;
 import ru.otus.hw.services.BookService;
 
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 
 @RequiredArgsConstructor
 @RestController
@@ -24,41 +26,37 @@ public class BookRestController {
     private final BookService bookService;
 
     @GetMapping("/api/book")
-    List<BookDto> getAll() {
+    Flux<BookDto> getAll() {
         return bookService.findAll();
     }
 
     @GetMapping("/api/book/{id}")
-    BookDto getById(@PathVariable long id) {
+    Mono<BookDto> getById(@PathVariable long id) {
         return bookService.findById(id);
     }
 
     @DeleteMapping("/api/book/{id}")
-    void deleteById(@PathVariable long id) {
-        bookService.deleteById(id);
+    Mono<Void> deleteById(@PathVariable long id) {
+        return bookService.deleteById(id);
     }
 
     @PostMapping("/api/book")
-    ResponseEntity<BookDto> createBook(@RequestBody Map<String, Object> bookData) {
-        String title = (String) bookData.get("title");
-        long authorId = ((Number) bookData.get("authorId")).longValue();
-        List<Long> genreIds = ((List<Number>) bookData.get("genreIds")).stream()
-                .map(Number::longValue)
-                .toList();
-
-        bookService.insert(title, authorId, new HashSet<>(genreIds));
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+    public Mono<ResponseEntity<BookDto>> createBook(@RequestBody @Valid BookFormDto bookDto) {
+        return bookService.insert(
+                bookDto.getTitle(),
+                bookDto.getAuthorId(),
+                new HashSet<>(bookDto.getGenreIds())
+        ).map(saved -> ResponseEntity.status(HttpStatus.CREATED).body(saved));
     }
 
     @PutMapping("/api/book/{id}")
-    ResponseEntity<BookDto> updateBook(@PathVariable long id, @RequestBody Map<String, Object> bookData) {
-        String title = (String) bookData.get("title");
-        long authorId = ((Number) bookData.get("authorId")).longValue();
-        List<Long> genreIds = ((List<Number>) bookData.get("genreIds")).stream()
-                .map(Number::longValue)
-                .toList();
-
-        bookService.update(id, title, authorId, new HashSet<>(genreIds));
-        return ResponseEntity.ok().build();
+    Mono<ResponseEntity<BookDto>> updateBook(@PathVariable long id, @RequestBody @Valid BookFormDto bookDto) {
+        return bookService.update(
+                        id,
+                        bookDto.getTitle(),
+                        bookDto.getAuthorId(),
+                        new HashSet<>(bookDto.getGenreIds())
+                ).map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 }

@@ -1,3 +1,8 @@
+DROP TABLE IF EXISTS books_genres;
+DROP TABLE IF EXISTS comments;
+DROP TABLE IF EXISTS books;
+DROP TABLE IF EXISTS genres;
+DROP TABLE IF EXISTS authors;
 create table authors (
     id bigserial,
     full_name varchar(255),

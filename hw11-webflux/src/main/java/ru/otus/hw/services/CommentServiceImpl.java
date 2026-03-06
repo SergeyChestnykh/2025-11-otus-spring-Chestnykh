@@ -9,6 +9,7 @@ import ru.otus.hw.converters.CommentConverter;
 import ru.otus.hw.dto.CommentDto;
 import ru.otus.hw.exceptions.EntityNotFoundException;
 import ru.otus.hw.models.Comment;
+import ru.otus.hw.repositories.BookRepository;
 import ru.otus.hw.repositories.CommentRepository;
 
 @Service
@@ -19,7 +20,7 @@ public class CommentServiceImpl implements CommentService {
 
     private final CommentConverter commentConverter;
 
-//    private final BookRepository bookRepository;
+    private final BookRepository bookRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -37,14 +38,13 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @Transactional
     public Mono<CommentDto> insert(long bookId, String text) {
-//        Book book = bookRepository.findById(bookId)
-//                .orElseThrow(() -> new EntityNotFoundException("Book not found with id:" + bookId));
-
-        Comment comment = new Comment();
-        comment.setText(text);
-//        comment.setBookId(book.getId());
-
-        return commentRepository.save(comment).map(commentConverter::commentToDto);
+        return bookRepository.findById(bookId)
+                .flatMap(book -> {
+                    Comment comment = new Comment();
+                    comment.setText(text);
+                    comment.setBookId(book.getId());
+                    return commentRepository.save(comment).map(commentConverter::commentToDto);
+                });
     }
 
     @Override

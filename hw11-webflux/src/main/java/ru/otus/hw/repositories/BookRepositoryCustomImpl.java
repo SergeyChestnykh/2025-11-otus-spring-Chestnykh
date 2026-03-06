@@ -71,13 +71,49 @@ public class BookRepositoryCustomImpl implements BookRepositoryCustom {
 
     @Override
     public Mono<Book> save(Book book) {
-        return insertBook(book)
-                .flatMap(bookId -> insertBookGenres(bookId, book.getGenres())
-                        .thenReturn(bookId))
-                .map(bookId -> {
-                    book.setId(bookId);
-                    return book;
-                });
+        if (book.getId() == 0) {
+            // Новая книга - INSERT
+            return insertBook(book)
+                    .flatMap(bookId -> insertBookGenres(bookId, book.getGenres())
+                            .thenReturn(bookId))
+                    .map(bookId -> {
+                        book.setId(bookId);
+                        return book;
+                    });
+        } else {
+            // Обновление книги - UPDATE + перезапись жанров
+            return updateBook(book)
+                    .flatMap(updated -> deleteAndInsertBookGenres(book.getId(), book.getGenres())
+                            .thenReturn(updated));
+        }
+    }
+
+    private Mono<Book> updateBook(Book book) {
+        return template.getDatabaseClient().sql("""
+                        update books set title = :title, author_id = :authorId
+                        where id = :id
+                        """)
+                .bind("id", book.getId())
+                .bind("title", book.getTitle())
+                .bind("authorId", book.getAuthor().getId())
+                .fetch()
+                .rowsUpdated()
+                .then(Mono.just(book));
+    }
+
+    private Mono<Void> deleteAndInsertBookGenres(Long bookId, List<Genre> genres) {
+        return deleteBookGenres(bookId)
+                .then(insertBookGenres(bookId, genres));
+    }
+
+    private Mono<Void> deleteBookGenres(Long bookId) {
+        return template.getDatabaseClient().sql("""
+                        delete from books_genres where book_id = :bookId
+                        """)
+                .bind("bookId", bookId)
+                .fetch()
+                .rowsUpdated()
+                .then();
     }
 
     private Flux<FlatRow> queryBooks(String sql, Map<String, Object> params) {

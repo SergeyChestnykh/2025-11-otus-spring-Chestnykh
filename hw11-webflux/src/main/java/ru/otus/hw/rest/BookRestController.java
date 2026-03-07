@@ -26,17 +26,17 @@ public class BookRestController {
     private final BookService bookService;
 
     @GetMapping("/api/book")
-    Flux<BookDto> getAll() {
+    public Flux<BookDto> getAll() {
         return bookService.findAll();
     }
 
     @GetMapping("/api/book/{id}")
-    Mono<BookDto> getById(@PathVariable long id) {
+    public Mono<BookDto> getById(@PathVariable long id) {
         return bookService.findById(id);
     }
 
     @DeleteMapping("/api/book/{id}")
-    Mono<Void> deleteById(@PathVariable long id) {
+    public Mono<Void> deleteById(@PathVariable long id) {
         return bookService.deleteById(id);
     }
 
@@ -50,7 +50,7 @@ public class BookRestController {
     }
 
     @PutMapping("/api/book/{id}")
-    Mono<ResponseEntity<BookDto>> updateBook(@PathVariable long id, @RequestBody @Valid BookFormDto bookDto) {
+    public Mono<ResponseEntity<BookDto>> updateBook(@PathVariable long id, @RequestBody @Valid BookFormDto bookDto) {
         return bookService.update(
                         id,
                         bookDto.getTitle(),

@@ -14,7 +14,7 @@ public class GenreRestController {
     private final GenreService genreService;
 
     @GetMapping("/api/genres")
-    Flux<GenreDto> getAllGenres() {
+    public Flux<GenreDto> getAllGenres() {
         return genreService.findAll();
     }
 

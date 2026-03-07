@@ -14,7 +14,7 @@ public class AuthorRestController {
     private final AuthorService authorService;
 
     @GetMapping("/api/authors")
-    Flux<AuthorDto> getAllAuthors() {
+    public Flux<AuthorDto> getAllAuthors() {
         return authorService.findAll();
     }
 

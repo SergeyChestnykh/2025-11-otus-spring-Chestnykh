@@ -12,10 +12,13 @@ import ru.otus.hw.models.Book;
 import ru.otus.hw.models.Genre;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @RequiredArgsConstructor
 @Repository
@@ -23,26 +26,22 @@ public class BookRepositoryCustomImpl implements BookRepositoryCustom {
 
     private final R2dbcEntityOperations template;
 
+    private final GenreRepository genreRepository;
+
     @Override
     public Flux<Book> findAllWithAuthorAndGenres() {
-        String sql = """
-                SELECT 
-                    b.id as b_id,
-                    b.title as b_title,
-                    a.id as a_id,
-                    a.full_name as a_name,
-                    g.id as g_id,
-                    g.name as g_name
-                FROM books b
-                JOIN authors a ON b.author_id = a.id
-                LEFT JOIN books_genres bg ON bg.book_id = b.id
-                LEFT JOIN genres g ON g.id = bg.genre_id
-                ORDER BY b.id
-                """;
-
-        return queryBooks(sql, null)
-                .collectList()
-                .flatMapMany(this::aggregate);
+        return findAllWithAuthor()
+                .flatMap(book ->
+                        getAllBookIdToGenres().map(bookIdToGenresList -> {
+                            List<Genre> genres = bookIdToGenresList.stream()
+                                    .filter(v -> v.bookId() == book.getId())
+                                    .map(BookIdToGenres::genres)
+                                    .findFirst()
+                                    .orElse(Collections.emptyList());
+                            book.setGenres(genres);
+                            return book;
+                        })
+                );
     }
 
 
@@ -86,6 +85,81 @@ public class BookRepositoryCustomImpl implements BookRepositoryCustom {
                     .flatMap(updated -> deleteAndInsertBookGenres(book.getId(), book.getGenres())
                             .thenReturn(updated));
         }
+    }
+
+    public record BookIdToGenreId(long bookId, long genreId) {
+    }
+
+    public record BookIdToGenresIds(long bookId, List<Long> genresIds) {
+    }
+
+    public record BookIdToGenres(long bookId, List<Genre> genres) {
+    }
+
+    private Flux<Book> findAllWithAuthor() {
+        String sql = """
+                SELECT 
+                    b.id as b_id,
+                    b.title as b_title,
+                    a.id as a_id,
+                    a.full_name as a_name
+                FROM books b
+                JOIN authors a ON b.author_id = a.id
+                ORDER BY b.id
+                """;
+
+        return template.getDatabaseClient().sql(sql)
+                .map((row, metadata) -> new Book(
+                        row.get("b_id", Long.class),
+                        row.get("b_title", String.class),
+                        new Author(
+                                row.get("a_id", Long.class),
+                                row.get("a_name", String.class)
+                        ),
+                        Collections.emptyList()
+                ))
+                .all();
+    }
+
+    private Flux<BookIdToGenreId> getAllBookIdToGenreId() {
+        var sql = "select book_id, genre_id from books_genres";
+        return template.getDatabaseClient().sql(sql)
+                .map((row, metadata) -> new BookIdToGenreId(
+                                row.get("book_id", Long.class),
+                                row.get("genre_id", Long.class)
+                        )
+                ).all();
+    }
+
+    private Mono<List<BookIdToGenres>> getAllBookIdToGenres() {
+        return getBookIdToGenresIds()
+                .zipWith(genreRepository.findAll().collectList())
+                .map(tuple -> {
+                    Map<Long, Genre> genresMap = tuple.getT2().stream()
+                            .collect(Collectors.toMap(Genre::getId, Function.identity()));
+                    return tuple.getT1().map(v -> {
+                                List<Genre> genres = v.genresIds.stream()
+                                        .map(genresMap::get)
+                                        .toList();
+                                return new BookIdToGenres(v.bookId, genres);
+                            }
+                    ).toList();
+                });
+    }
+
+    private Mono<Stream<BookIdToGenresIds>> getBookIdToGenresIds() {
+        return getAllBookIdToGenreId().collectList()
+                .map(list ->
+                        list.stream()
+                                .collect(Collectors.groupingBy(BookIdToGenreId::bookId))
+                                .entrySet()
+                                .stream()
+                                .map(e ->
+                                        new BookIdToGenresIds(
+                                                e.getKey(),
+                                                e.getValue().stream().map(BookIdToGenreId::genreId).toList()
+                                        ))
+                );
     }
 
     private Mono<Book> updateBook(Book book) {
@@ -187,27 +261,6 @@ public class BookRepositoryCustomImpl implements BookRepositoryCustom {
             Long genreId,
             String genreName
     ) {
-    }
-
-    private Flux<Book> aggregate(List<FlatRow> rows) {
-
-        Map<Long, Book> books = new LinkedHashMap<>();
-
-        for (FlatRow row : rows) {
-
-            books.computeIfAbsent(row.bookId(), id -> {
-                Author author = new Author(row.authorId(), row.authorName());
-                return new Book(id, row.bookTitle(), author, new ArrayList<>());
-            });
-
-            if (row.genreId() != null) {
-                books.get(row.bookId())
-                        .getGenres()
-                        .add(new Genre(row.genreId(), row.genreName()));
-            }
-        }
-
-        return Flux.fromIterable(books.values());
     }
 
     private Mono<Book> aggregateSingle(List<FlatRow> rows) {

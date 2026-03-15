@@ -30,17 +30,18 @@ public class BookRepositoryCustomImpl implements BookRepositoryCustom {
 
     @Override
     public Flux<Book> findAllWithAuthorAndGenres() {
-        return findAllWithAuthor()
-                .flatMap(book ->
-                        getAllBookIdToGenres().map(bookIdToGenresList -> {
-                            List<Genre> genres = bookIdToGenresList.stream()
-                                    .filter(v -> v.bookId() == book.getId())
-                                    .map(BookIdToGenres::genres)
-                                    .findFirst()
-                                    .orElse(Collections.emptyList());
-                            book.setGenres(genres);
-                            return book;
-                        })
+        return getAllBookIdToGenres()
+                .map(list -> list.stream()
+                        .collect(Collectors.toMap(
+                                BookIdToGenres::bookId,
+                                BookIdToGenres::genres
+                        )))
+                .flatMapMany(bookIdToGenres ->
+                        findAllWithAuthor()
+                                .map(book -> {
+                                    book.setGenres(bookIdToGenres.get(book.getId()));
+                                    return book;
+                                })
                 );
     }
 

@@ -29,3 +29,9 @@ create table books_genres (
     genre_id bigint references genres(id) on delete cascade,
     primary key (book_id, genre_id)
 );
+
+create table users (
+    id bigserial PRIMARY KEY,
+    user_name varchar(255) NOT NULL UNIQUE,
+    user_password varchar(255) NOT NULL
+);

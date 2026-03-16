@@ -46,16 +46,10 @@ public class AuthorControllerSecurityTest extends ControllerSecurityTest {
         executeRequestAndVerify(mockMvc, requestBuilder, userName, expectedStatus, expectedRedirectUrl);
     }
 
-    @Override
     public Stream<Arguments> getTestData() {
         return Stream.of(
-                Arguments.of(TEST_USER, 200, getSuccessRedirectUrl()),
+                Arguments.of(TEST_USER, 200, null),
                 Arguments.of(null, 302, LOGIN_REDIRECT_URL)
         );
-    }
-
-    @Override
-    protected String getSuccessRedirectUrl() {
-        return null;
     }
 }

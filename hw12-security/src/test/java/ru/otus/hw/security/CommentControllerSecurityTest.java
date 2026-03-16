@@ -3,6 +3,7 @@ package ru.otus.hw.security;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -14,6 +15,8 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.otus.hw.controllers.CommentController;
 import ru.otus.hw.services.CommentService;
+
+import java.util.stream.Stream;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
@@ -75,8 +78,10 @@ public class CommentControllerSecurityTest extends ControllerSecurityTest {
         executeRequestAndVerify(mockMvc, requestBuilder, userName, expectedStatus, expectedRedirectUrl);
     }
 
-    @Override
-    protected String getSuccessRedirectUrl() {
-        return "/book/1";
+    public Stream<Arguments> getTestData() {
+        return Stream.of(
+                Arguments.of(TEST_USER, 302, "/book/1"),
+                Arguments.of(null, 302, LOGIN_REDIRECT_URL)
+        );
     }
 }

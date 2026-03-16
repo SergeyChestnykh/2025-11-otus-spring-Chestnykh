@@ -32,7 +32,7 @@ public class GenreControllerSecurityTest extends ControllerSecurityTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @DisplayName("проверяющий получение списка авторов")
+    @DisplayName("проверяющий получение списка жанров")
     @ParameterizedTest(name = "Пользователь: {0} - статус: {1}")
     @MethodSource("getTestData")
     public void securityTestListGenres(

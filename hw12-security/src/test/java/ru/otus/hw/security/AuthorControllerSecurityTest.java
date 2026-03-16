@@ -27,7 +27,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 public class AuthorControllerSecurityTest extends ControllerSecurityTest {
 
     @MockitoBean
-    private AuthorService commentService;
+    private AuthorService service;
 
     @Autowired
     private MockMvc mockMvc;

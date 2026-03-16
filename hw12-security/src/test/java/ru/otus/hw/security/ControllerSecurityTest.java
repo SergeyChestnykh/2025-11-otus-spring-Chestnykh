@@ -14,8 +14,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public abstract class ControllerSecurityTest {
 
-    private static final String TEST_USER = "user";
-    private static final String LOGIN_REDIRECT_URL = "http://localhost/login";
+    static final String TEST_USER = "user";
+    static final String LOGIN_REDIRECT_URL = "http://localhost/login";
 
     protected abstract String getSuccessRedirectUrl();
 

@@ -29,6 +29,6 @@ values ('First comment b1', 1),
        ('Second comment b1', 1),
        ('First comment b2', 2);
 
-insert into users (user_name, user_password)
-values ('user', '$2a$12$R8t9stj5Ozg87sIWWfO58.5VV.iOnLkAZTTIwIsn4LbLHLrtyiSay'),
-       ('admin', '$2a$12$XC512r3lxHhXLo72C06s0e5OLLGuiGT59F0Qx3VIuYNB7y.oss4QW');
+insert into users (user_name, user_password, user_role)
+values ('user', '$2a$12$R8t9stj5Ozg87sIWWfO58.5VV.iOnLkAZTTIwIsn4LbLHLrtyiSay', 'USER'),
+       ('admin', '$2a$12$XC512r3lxHhXLo72C06s0e5OLLGuiGT59F0Qx3VIuYNB7y.oss4QW', 'ADMIN');

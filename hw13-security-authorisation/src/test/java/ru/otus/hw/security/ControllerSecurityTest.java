@@ -1,6 +1,7 @@
 package ru.otus.hw.security;
 
 import org.springframework.lang.Nullable;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -11,23 +12,29 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public abstract class ControllerSecurityTest {
 
-    static final String TEST_USER = "user";
     static final String LOGIN_REDIRECT_URL = "http://localhost/login";
 
-    public void executeRequestAndVerify(MockMvc mockMvc,
-                                        MockHttpServletRequestBuilder requestBuilder,
-                                        @Nullable String userName,
-                                        int expectedStatus,
-                                        @Nullable String expectedRedirectUrl) throws Exception {
-        if (userName != null) {
-            requestBuilder.with(user(userName));
+    protected void performAndAssert(MockMvc mockMvc,
+                                    MockHttpServletRequestBuilder request,
+                                    @Nullable SecurityMockMvcRequestPostProcessors.UserRequestPostProcessor principal,
+                                    int expectedStatus,
+                                    @Nullable String expectedRedirectUrl) throws Exception {
+        if (principal != null) {
+            request.with(principal);
         }
-
-        ResultActions resultActions = mockMvc.perform(requestBuilder)
+        ResultActions ra = mockMvc.perform(request)
                 .andExpect(status().is(expectedStatus));
-
         if (expectedRedirectUrl != null) {
-            resultActions.andExpect(redirectedUrl(expectedRedirectUrl));
+            ra.andExpect(redirectedUrl(expectedRedirectUrl));
         }
     }
+
+    protected static SecurityMockMvcRequestPostProcessors.UserRequestPostProcessor asUser() {
+        return user("user");
+    }
+
+    protected static SecurityMockMvcRequestPostProcessors.UserRequestPostProcessor asAdmin() {
+        return user("admin").roles("ADMIN");
+    }
+
 }

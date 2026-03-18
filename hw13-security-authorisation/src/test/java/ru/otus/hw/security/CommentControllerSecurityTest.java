@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.lang.Nullable;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -38,7 +39,7 @@ public class CommentControllerSecurityTest extends ControllerSecurityTest {
     @ParameterizedTest(name = "Пользователь: {0} - статус: {1}")
     @MethodSource("getTestData")
     public void securityTestAddComment(
-            @Nullable String userName,
+            @Nullable SecurityMockMvcRequestPostProcessors.UserRequestPostProcessor principal,
             int expectedStatus,
             @Nullable String expectedRedirectUrl
     ) throws Exception {
@@ -46,14 +47,14 @@ public class CommentControllerSecurityTest extends ControllerSecurityTest {
                 .param("text", "new comment content")
                 .with(csrf());
 
-        executeRequestAndVerify(mockMvc, requestBuilder, userName, expectedStatus, expectedRedirectUrl);
+        performAndAssert(mockMvc, requestBuilder, principal, expectedStatus, expectedRedirectUrl);
     }
 
     @DisplayName("проверяющий обновление комментария")
     @ParameterizedTest(name = "Пользователь: {0} - статус: {1}")
     @MethodSource("getTestData")
     public void securityTestUpdateComment(
-            @Nullable String userName,
+            @Nullable SecurityMockMvcRequestPostProcessors.UserRequestPostProcessor principal,
             int expectedStatus,
             @Nullable String expectedRedirectUrl
     ) throws Exception {
@@ -61,27 +62,28 @@ public class CommentControllerSecurityTest extends ControllerSecurityTest {
                 .param("text", "update comment content")
                 .with(csrf());
 
-        executeRequestAndVerify(mockMvc, requestBuilder, userName, expectedStatus, expectedRedirectUrl);
+        performAndAssert(mockMvc, requestBuilder, principal, expectedStatus, expectedRedirectUrl);
     }
 
     @DisplayName("проверяющий удаление комментария")
     @ParameterizedTest(name = "Пользователь: {0} - статус: {1}")
     @MethodSource("getTestData")
     public void securityTestDeleteComment(
-            @Nullable String userName,
+            @Nullable SecurityMockMvcRequestPostProcessors.UserRequestPostProcessor principal,
             int expectedStatus,
             @Nullable String expectedRedirectUrl
     ) throws Exception {
         MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.delete("/book/{bookId}/comment/1", BOOK_ID)
                 .with(csrf());
 
-        executeRequestAndVerify(mockMvc, requestBuilder, userName, expectedStatus, expectedRedirectUrl);
+        performAndAssert(mockMvc, requestBuilder, principal, expectedStatus, expectedRedirectUrl);
     }
 
-    public Stream<Arguments> getTestData() {
+    private static Stream<Arguments> getTestData() {
         return Stream.of(
-                Arguments.of(TEST_USER, 302, "/book/1"),
-                Arguments.of(null, 302, LOGIN_REDIRECT_URL)
+                Arguments.of(null, 302, LOGIN_REDIRECT_URL),
+                Arguments.of(asUser(), 302, "/book/1"),
+                Arguments.of(asAdmin(), 302, "/book/1")
         );
     }
 }

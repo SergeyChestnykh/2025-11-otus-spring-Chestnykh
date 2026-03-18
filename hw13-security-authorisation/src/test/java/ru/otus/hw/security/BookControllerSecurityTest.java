@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.lang.Nullable;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -100,58 +101,58 @@ public class BookControllerSecurityTest extends ControllerSecurityTest {
 
     @DisplayName("проверяющий получение списка книг")
     @ParameterizedTest(name = "Пользователь: {0} - статус: {1}")
-    @MethodSource("getTestData")
+    @MethodSource("getUserTestData")
     public void securityTestListBooks(
-            @Nullable String userName,
+            @Nullable SecurityMockMvcRequestPostProcessors.UserRequestPostProcessor principal,
             int expectedStatus,
             @Nullable String expectedRedirectUrl
     ) throws Exception {
         MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.get("/")
                 .with(csrf());
 
-        executeRequestAndVerify(mockMvc, requestBuilder, userName, expectedStatus, expectedRedirectUrl);
+        performAndAssert(mockMvc, requestBuilder, principal, expectedStatus, expectedRedirectUrl);
     }
 
     @DisplayName("проверяющий получение информации о книге")
     @ParameterizedTest(name = "Пользователь: {0} - статус: {1}")
-    @MethodSource("getTestData")
+    @MethodSource("getUserTestData")
     public void securityTestBookInfo(
-            @Nullable String userName,
+            @Nullable SecurityMockMvcRequestPostProcessors.UserRequestPostProcessor principal,
             int expectedStatus,
             @Nullable String expectedRedirectUrl
     ) throws Exception {
         MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.get("/book/1")
                 .with(csrf());
 
-        executeRequestAndVerify(mockMvc, requestBuilder, userName, expectedStatus, expectedRedirectUrl);
+        performAndAssert(mockMvc, requestBuilder, principal, expectedStatus, expectedRedirectUrl);
     }
 
     @DisplayName("проверяющий получение доступа к форме создания книги")
     @ParameterizedTest(name = "Пользователь: {0} - статус: {1}")
-    @MethodSource("getTestData")
+    @MethodSource("getAdminTestData")
     public void securityTestNewBookForm(
-            @Nullable String userName,
+            @Nullable SecurityMockMvcRequestPostProcessors.UserRequestPostProcessor principal,
             int expectedStatus,
             @Nullable String expectedRedirectUrl
     ) throws Exception {
         MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.get("/book/new")
                 .with(csrf());
 
-        executeRequestAndVerify(mockMvc, requestBuilder, userName, expectedStatus, expectedRedirectUrl);
+        performAndAssert(mockMvc, requestBuilder, principal, expectedStatus, expectedRedirectUrl);
     }
 
     @DisplayName("проверяющий получение доступа к форме изменения книги")
     @ParameterizedTest(name = "Пользователь: {0} - статус: {1}")
-    @MethodSource("getTestData")
+    @MethodSource("getAdminTestData")
     public void securityTestEditBookForm(
-            @Nullable String userName,
+            @Nullable SecurityMockMvcRequestPostProcessors.UserRequestPostProcessor principal,
             int expectedStatus,
             @Nullable String expectedRedirectUrl
     ) throws Exception {
         MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.get("/book/{bookId}/edit", TEST_BOOK_ID)
                 .with(csrf());
 
-        executeRequestAndVerify(mockMvc, requestBuilder, userName, expectedStatus, expectedRedirectUrl);
+        performAndAssert(mockMvc, requestBuilder, principal, expectedStatus, expectedRedirectUrl);
     }
 
 
@@ -159,7 +160,7 @@ public class BookControllerSecurityTest extends ControllerSecurityTest {
     @ParameterizedTest(name = "Пользователь: {0} - статус: {1}")
     @MethodSource("getModifyingTestData")
     public void securityTestAddBook(
-            @Nullable String userName,
+            @Nullable SecurityMockMvcRequestPostProcessors.UserRequestPostProcessor principal,
             int expectedStatus,
             @Nullable String expectedRedirectUrl
     ) throws Exception {
@@ -169,14 +170,14 @@ public class BookControllerSecurityTest extends ControllerSecurityTest {
                 .param("genreIds", "1")
                 .with(csrf());
 
-        executeRequestAndVerify(mockMvc, requestBuilder, userName, expectedStatus, expectedRedirectUrl);
+        performAndAssert(mockMvc, requestBuilder, principal, expectedStatus, expectedRedirectUrl);
     }
 
     @DisplayName("проверяющий обновление книги")
     @ParameterizedTest(name = "Пользователь: {0} - статус: {1}")
     @MethodSource("getModifyingTestData")
     public void securityTestUpdateBook(
-            @Nullable String userName,
+            @Nullable SecurityMockMvcRequestPostProcessors.UserRequestPostProcessor principal,
             int expectedStatus,
             @Nullable String expectedRedirectUrl
     ) throws Exception {
@@ -186,34 +187,44 @@ public class BookControllerSecurityTest extends ControllerSecurityTest {
                 .param("genreIds", "1")
                 .with(csrf());
 
-        executeRequestAndVerify(mockMvc, requestBuilder, userName, expectedStatus, expectedRedirectUrl);
+        performAndAssert(mockMvc, requestBuilder, principal, expectedStatus, expectedRedirectUrl);
     }
 
     @DisplayName("проверяющий удаление книги")
     @ParameterizedTest(name = "Пользователь: {0} - статус: {1}")
     @MethodSource("getModifyingTestData")
     public void securityTestDeleteBook(
-            @Nullable String userName,
+            @Nullable SecurityMockMvcRequestPostProcessors.UserRequestPostProcessor principal,
             int expectedStatus,
             @Nullable String expectedRedirectUrl
     ) throws Exception {
         MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.delete("/book/{bookId}", TEST_BOOK_ID)
                 .with(csrf());
 
-        executeRequestAndVerify(mockMvc, requestBuilder, userName, expectedStatus, expectedRedirectUrl);
+        performAndAssert(mockMvc, requestBuilder, principal, expectedStatus, expectedRedirectUrl);
     }
 
-    public Stream<Arguments> getTestData() {
+    public Stream<Arguments> getUserTestData() {
         return Stream.of(
-                Arguments.of(TEST_USER, 200, null),
-                Arguments.of(null, 302, LOGIN_REDIRECT_URL)
+                Arguments.of(null, 302, LOGIN_REDIRECT_URL),
+                Arguments.of(asUser(), 200, null),
+                Arguments.of(asAdmin(), 200, null)
+        );
+    }
+
+    public Stream<Arguments> getAdminTestData() {
+        return Stream.of(
+                Arguments.of(null, 302, LOGIN_REDIRECT_URL),
+                Arguments.of(asUser(), 403, null),
+                Arguments.of(asAdmin(), 200, null)
         );
     }
 
     public Stream<Arguments> getModifyingTestData() {
         return Stream.of(
-                Arguments.of(TEST_USER, 302, "/"),
-                Arguments.of(null, 302, LOGIN_REDIRECT_URL)
+                Arguments.of(null, 302, LOGIN_REDIRECT_URL),
+                Arguments.of(asUser(), 403, null),
+                Arguments.of(asAdmin(), 302, "/")
         );
     }
 }

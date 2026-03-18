@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Book Details</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .book-info { margin-bottom: 20px; }
+        .genres { color: #666; }
+        .actions { margin: 15px 0; }
+        .btn { padding: 5px 10px; text-decoration: none; border: none; cursor: pointer; margin-right: 5px; }
+        .btn-primary { background: #2196F3; color: white; }
+        .btn-warning { background: #FF9800; color: white; }
+        .btn-danger { background: #f44336; color: white; }
+        .btn-success { background: #4CAF50; color: white; }
+        .comments { margin-top: 20px; }
+        .comment { border: 1px solid #ddd; padding: 10px; margin: 10px 0; }
+        .comment-form { margin: 15px 0; padding: 10px; background: #f9f9f9; }
+        input[type="text"] { padding: 5px; width: 300px; }
+    </style>
+</head>
+<body>
+    <h1 th:text="${book.title()}">Book Title</h1>
+    
+    <div class="book-info">
+        <p><strong>Author:</strong> <span th:text="${book.author().fullName()}">Author Name</span></p>
+        <p class="genres">
+            <strong>Genres:</strong> 
+            <span th:each="g,stat : ${book.genres()}" 
+                  th:text="${g.name() + (stat.last ? '' : ', ')}">Genre</span>
+        </p>
+    </div>
+
+    <div class="actions">
+        <a th:href="@{/}" class="btn btn-primary">Home</a>
+        <a th:href="@{/book/{id}/edit(id=${book.id})}" class="btn btn-warning">Edit</a>
+        <form th:action="@{/book/{id}(id=${book.id})}" th:method="delete" style="display:inline;">
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this book?');">Delete</button>
+        </form>
+    </div>
+
+    <div class="comments">
+        <h3>Comments</h3>
+        
+        <!-- Add new comment form -->
+        <div class="comment-form">
+            <form th:action="@{/book/{bookId}/comment(bookId=${book.id})}" method="post">
+                <input type="text" name="text" placeholder="Enter your comment" required>
+                <button type="submit" class="btn btn-success">Add Comment</button>
+            </form>
+        </div>
+
+        <!-- Comments list -->
+        <div th:each="c : ${comments}" class="comment">
+            <p th:text="${c.text()}">Comment text</p>
+            <div>
+                <form th:action="@{/book/{bookId}/comment/{commentId}(bookId=${book.id},commentId=${c.id()})}" 
+                      th:method="delete" style="display:inline;">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Delete comment?');">Delete</button>
+                </form>
+            </div>
+        </div>
+
+        <p th:if="${#lists.isEmpty(comments)}">No comments yet.</p>
+    </div>
+</body>
+</html>

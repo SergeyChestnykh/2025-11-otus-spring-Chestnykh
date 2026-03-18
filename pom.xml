@@ -22,6 +22,7 @@
         <module>hw09-mvc</module>
         <module>hw10-ajax</module>
         <module>hw12-security</module>
+        <module>hw13-security-authorisation</module>
     </modules>
 
 </project>

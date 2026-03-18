@@ -3,6 +3,7 @@ package ru.otus.hw.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -26,10 +27,17 @@ public class SecurityConfiguration {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
                 .authorizeHttpRequests((authorize) -> authorize
-                        .requestMatchers("/login").permitAll()
+                        .requestMatchers("/login", "/error").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/book/new", "/book/*/edit").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/book").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/book/*").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/book/*").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
-                .formLogin(Customizer.withDefaults());
+                .formLogin(Customizer.withDefaults())
+                .exceptionHandling(ex -> ex
+                        .accessDeniedPage("/forbidden")
+                );
         return http.build();
     }
 }

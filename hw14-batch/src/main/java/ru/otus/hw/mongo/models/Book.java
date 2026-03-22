@@ -1,4 +1,4 @@
-package ru.otus.hw.models;
+package ru.otus.hw.mongo.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

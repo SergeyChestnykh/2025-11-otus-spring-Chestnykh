@@ -1,9 +1,9 @@
-package ru.otus.hw.converters;
+package ru.otus.hw.mongo.converters;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.otus.hw.dto.CommentDto;
-import ru.otus.hw.models.Comment;
+import ru.otus.hw.mongo.models.Comment;
 
 import java.util.Objects;
 

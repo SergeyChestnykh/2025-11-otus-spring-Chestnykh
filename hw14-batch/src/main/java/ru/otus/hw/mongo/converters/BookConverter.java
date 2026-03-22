@@ -1,9 +1,9 @@
-package ru.otus.hw.converters;
+package ru.otus.hw.mongo.converters;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.otus.hw.dto.BookDto;
-import ru.otus.hw.models.Book;
+import ru.otus.hw.mongo.models.Book;
 
 import java.util.stream.Collectors;
 

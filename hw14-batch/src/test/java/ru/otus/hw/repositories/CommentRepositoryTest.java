@@ -6,10 +6,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import ru.otus.hw.models.Author;
-import ru.otus.hw.models.Book;
-import ru.otus.hw.models.Comment;
-import ru.otus.hw.models.Genre;
+import ru.otus.hw.mongo.models.Author;
+import ru.otus.hw.mongo.models.Book;
+import ru.otus.hw.mongo.models.Comment;
+import ru.otus.hw.mongo.models.Genre;
+import ru.otus.hw.mongo.repositories.CommentRepository;
 
 import java.util.List;
 

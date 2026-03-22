@@ -1,16 +1,16 @@
-package ru.otus.hw.mongock.changelog;
+package ru.otus.hw.mongo.mongock.changelog;
 
 import com.github.cloudyrock.mongock.ChangeLog;
 import com.github.cloudyrock.mongock.ChangeSet;
 import com.mongodb.client.MongoDatabase;
-import ru.otus.hw.models.Author;
-import ru.otus.hw.models.Book;
-import ru.otus.hw.models.Comment;
-import ru.otus.hw.models.Genre;
-import ru.otus.hw.repositories.AuthorRepository;
-import ru.otus.hw.repositories.BookRepository;
-import ru.otus.hw.repositories.CommentRepository;
-import ru.otus.hw.repositories.GenreRepository;
+import ru.otus.hw.mongo.models.Author;
+import ru.otus.hw.mongo.models.Book;
+import ru.otus.hw.mongo.models.Comment;
+import ru.otus.hw.mongo.models.Genre;
+import ru.otus.hw.mongo.repositories.AuthorRepository;
+import ru.otus.hw.mongo.repositories.BookRepository;
+import ru.otus.hw.mongo.repositories.CommentRepository;
+import ru.otus.hw.mongo.repositories.GenreRepository;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,8 +1,8 @@
-package ru.otus.hw.converters;
+package ru.otus.hw.mongo.converters;
 
 import org.springframework.stereotype.Component;
 import ru.otus.hw.dto.AuthorDto;
-import ru.otus.hw.models.Author;
+import ru.otus.hw.mongo.models.Author;
 
 @Component
 public class AuthorConverter {

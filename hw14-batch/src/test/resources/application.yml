@@ -1,8 +1,13 @@
 spring:
   data:
     mongodb:
-      #      port: 0 # when flapdoodle using
+      port: 0
       database: company
+de:
+  flapdoodle:
+    mongodb:
+      embedded:
+        version: 6.0.5
 
 mongock:
   runner-type: "ApplicationRunner" # default

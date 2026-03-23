@@ -16,7 +16,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
-import ru.otus.hw.batch.converters.MongoJpaGenreConverter;
 import ru.otus.hw.jpa.models.Genre;
 
 import java.util.HashMap;

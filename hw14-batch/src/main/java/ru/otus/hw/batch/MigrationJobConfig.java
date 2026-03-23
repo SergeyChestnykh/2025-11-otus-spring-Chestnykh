@@ -2,8 +2,6 @@ package ru.otus.hw.batch;
 
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
@@ -26,7 +24,6 @@ import java.util.ArrayList;
 @Configuration
 public class MigrationJobConfig {
 
-    private static final Logger logger = LoggerFactory.getLogger(MigrationJobConfig.class);
     private final JobRepository jobRepository;
     private final GenreRepository genreRepository;
     private final AuthorRepository authorRepository;
@@ -60,13 +57,13 @@ public class MigrationJobConfig {
                     var comments = new ArrayList<Comment>();
                     books.forEach(book -> comments.addAll(commentRepository.findAllForBook(book.getId())));
 
-                    logger.info("Migration job completed successfully");
-                    logger.info("Total genres migrated to JPA: {}", genres.size());
-                    logger.info("Total authors migrated to JPA: {}", authors.size());
-                    logger.info("Total books migrated to JPA: {}", books.size());
-                    logger.info("Total comments migrated to JPA: {}", comments.size());
+                    System.out.println("Migration job completed successfully");
+                    System.out.printf("Total genres migrated to JPA: %s %n", genres.size());
+                    System.out.printf("Total authors migrated to JPA: %s %n", authors.size());
+                    System.out.printf("Total books migrated to JPA: %s %n", books.size());
+                    System.out.printf("Total comments migrated to JPA: %s %n", comments.size());
                 } else {
-                    logger.error("Genre migration job failed with status: {}", jobExecution.getStatus());
+                    System.out.printf("Genre migration job failed with status: %s %n", jobExecution.getStatus());
                 }
             }
         };

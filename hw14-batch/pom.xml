@@ -23,7 +23,6 @@
         <checkstyle.config.url>
             https://raw.githubusercontent.com/OtusTeam/Spring/master/checkstyle.xml
         </checkstyle.config.url>
-        <reflections.version>0.10.2</reflections.version>
         <mongock.version>4.3.8</mongock.version>
         <flapdoodle.version>4.11.0</flapdoodle.version>
     </properties>
@@ -39,13 +38,6 @@
             <groupId>de.flapdoodle.embed</groupId>
             <artifactId>de.flapdoodle.embed.mongo.spring30x</artifactId>
             <version>${flapdoodle.version}</version>
-        </dependency>
-
-
-        <dependency>
-            <groupId>org.reflections</groupId>
-            <artifactId>reflections</artifactId>
-            <version>${reflections.version}</version>
         </dependency>
 
         <dependency>

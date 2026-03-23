@@ -30,9 +30,13 @@ public class GenreMigrationConfig {
     private static final int CHUNK_SIZE = 10;
 
     private final JobRepository jobRepository;
+
     private final PlatformTransactionManager transactionManager;
+
     private final MongoTemplate mongoTemplate;
+
     private final EntityManagerFactory entityManagerFactory;
+
     private final Map<String, Genre> mapMongoIdToGenre = new HashMap<>();
 
     @Bean

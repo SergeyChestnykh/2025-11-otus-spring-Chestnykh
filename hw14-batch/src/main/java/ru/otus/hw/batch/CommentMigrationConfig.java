@@ -31,10 +31,15 @@ public class CommentMigrationConfig {
     private static final int CHUNK_SIZE = 10;
 
     private final JobRepository jobRepository;
+
     private final PlatformTransactionManager transactionManager;
+
     private final MongoTemplate mongoTemplate;
+
     private final EntityManagerFactory entityManagerFactory;
+
     private final MongoJpaCommentConverter mongoJpaCommentConverter;
+
     private final Map<String, Comment> mapMongoIdToComment = new HashMap<>();
 
     @Bean

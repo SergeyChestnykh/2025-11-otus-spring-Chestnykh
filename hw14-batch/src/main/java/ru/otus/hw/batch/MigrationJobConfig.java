@@ -25,13 +25,21 @@ import java.util.ArrayList;
 public class MigrationJobConfig {
 
     private final JobRepository jobRepository;
+
     private final GenreRepository genreRepository;
+
     private final AuthorRepository authorRepository;
+
     private final BookRepository bookRepository;
+
     private final CommentRepository commentRepository;
+
     private final Step genreMigrationStep;
+
     private final Step authorMigrationStep;
+
     private final Step commentMigrationStep;
+
     private final Step bookMigrationStep;
 
     @Bean

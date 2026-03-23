@@ -2,6 +2,7 @@ package ru.otus.hw.batch;
 
 import jakarta.persistence.EntityManagerFactory;
 import lombok.AllArgsConstructor;
+import lombok.NonNull;
 import org.springframework.batch.core.ItemWriteListener;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.repository.JobRepository;
@@ -31,9 +32,13 @@ public class AuthorMigrationConfig {
     private static final int CHUNK_SIZE = 10;
 
     private final JobRepository jobRepository;
+
     private final PlatformTransactionManager transactionManager;
+
     private final MongoTemplate mongoTemplate;
+
     private final EntityManagerFactory entityManagerFactory;
+
     private final Map<String, Author> mapMongoIdToJpaId = new HashMap<>();
 
     @Bean
@@ -51,7 +56,7 @@ public class AuthorMigrationConfig {
                 .writer(new MigrateJpaItemWriter(authorJpaWriter()))
                 .listener(new ItemWriteListener<Author>() {
                     @Override
-                    public void afterWrite(Chunk<? extends Author> items) {
+                    public void afterWrite(@NonNull Chunk<? extends Author> items) {
                         System.out.println(mapMongoIdToJpaId);
                         items.forEach(author -> {
                             System.out.println("authorId: " + author.getId());

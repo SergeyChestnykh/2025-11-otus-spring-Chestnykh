@@ -19,7 +19,9 @@ import java.util.List;
 public class DatabaseChangelog {
 
     private final List<Author> authors = new ArrayList<>();
+
     private final List<Genre> genres = new ArrayList<>();
+
     private final List<Book> books = new ArrayList<>();
 
     @ChangeSet(order = "001", id = "dropDb", author = "Chestnykh", runAlways = true)

@@ -39,11 +39,11 @@ public class AuthorMigrationConfig {
 
     private final EntityManagerFactory entityManagerFactory;
 
-    private final Map<String, Author> mapMongoIdToJpaId = new HashMap<>();
+    private final Map<String, Author> mapMongoIdToAuthor = new HashMap<>();
 
     @Bean
     public Map<String, Author> authorRelationsHolder() {
-        return mapMongoIdToJpaId;
+        return mapMongoIdToAuthor;
     }
 
 
@@ -57,7 +57,7 @@ public class AuthorMigrationConfig {
                 .listener(new ItemWriteListener<Author>() {
                     @Override
                     public void afterWrite(@NonNull Chunk<? extends Author> items) {
-                        System.out.println(mapMongoIdToJpaId);
+                        System.out.println(mapMongoIdToAuthor);
                         items.forEach(author -> {
                             System.out.println("authorId: " + author.getId());
                         });
@@ -113,7 +113,7 @@ public class AuthorMigrationConfig {
             delegate.write(new Chunk<>(authors));
 
             for (AuthorMigrationItem item : chunk.getItems()) {
-                mapMongoIdToJpaId.put(
+                mapMongoIdToAuthor.put(
                         item.mongoAuthor().getId(),
                         item.jpaAuthor()
                 );

@@ -21,11 +21,8 @@
         <module>hw08-mongo</module>
         <module>hw09-mvc</module>
         <module>hw10-ajax</module>
-<<<<<<< hw12
-        <module>hw12-security</module>
-=======
         <module>hw11-webflux</module>
->>>>>>> main
+        <module>hw12-security</module>
     </modules>
 
 </project>

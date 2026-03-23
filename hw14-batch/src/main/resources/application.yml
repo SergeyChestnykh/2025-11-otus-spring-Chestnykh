@@ -19,6 +19,7 @@ spring:
 logging:
   level:
     de.flapdoodle.embed.mongo.spring.autoconfigure.EmbeddedMongo: OFF
+    de.flapdoodle.embed.mongo.runtime.Mongod: OFF
 
 de:
   flapdoodle:

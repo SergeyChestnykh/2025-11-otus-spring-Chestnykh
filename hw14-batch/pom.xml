@@ -10,7 +10,7 @@
     </parent>
 
     <groupId>ru.otus.hw</groupId>
-    <artifactId>hw08-mongo</artifactId>
+    <artifactId>hw14-batch</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>spring-batch</name>
 

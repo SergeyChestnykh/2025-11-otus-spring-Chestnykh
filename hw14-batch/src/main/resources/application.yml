@@ -16,6 +16,10 @@ spring:
     hibernate:
       ddl-auto: none
 
+logging:
+  level:
+    de.flapdoodle.embed.mongo.spring.autoconfigure.EmbeddedMongo: OFF
+
 de:
   flapdoodle:
     mongodb:

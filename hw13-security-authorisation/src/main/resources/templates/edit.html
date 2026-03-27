@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${isNew} ? 'Add Book' : 'Edit Book'">Book Form</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        form { max-width: 500px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], select { padding: 8px; width: 100%; box-sizing: border-box; margin-bottom: 5px; }
+        .btn { padding: 8px 15px; border: none; cursor: pointer; margin-right: 5px; }
+        .btn-success { background: #4CAF50; color: white; }
+        .btn-default { background: #ddd; }
+        .btn-primary { background: #2196F3; color: white; }
+        .error { color: red; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <h1 th:text="${isNew} ? 'Add Book' : 'Edit Book'">Book Form</h1>
+
+    <form th:action="${isNew} ? @{/book} : @{/book/{id}(id=${book.id})}" 
+          th:object="${book}" 
+          method="post">
+        
+        <input type="hidden" th:unless="${isNew}" name="_method" value="put"/>
+
+        <div class="form-group">
+            <label for="title">Title</label>
+            <input type="text" id="title" th:field="*{title}" required>
+            <span class="error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></span>
+        </div>
+
+        <div class="form-group">
+            <label for="author">Author</label>
+            <select id="author" th:field="*{authorId}" required>
+                <option value="">Select author</option>
+                <option th:each="a : ${authors}" 
+                        th:value="${a.id()}" 
+                        th:text="${a.fullName()}">Author</option>
+            </select>
+            <span class="error" th:if="${#fields.hasErrors('authorId')}" th:errors="*{authorId}"></span>
+        </div>
+
+        <div class="form-group">
+            <label>Genres (select at least one)</label>
+            <label>
+                <select th:field="*{genreIds}" multiple size="4" required>
+                    <option th:each="g : ${genres}"
+                            th:value="${g.id()}"
+                            th:text="${g.name()}">Genre</option>
+                </select>
+            </label>
+            <span class="error" th:if="${#fields.hasErrors('genreIds')}" th:errors="*{genreIds}"></span>
+        </div>
+
+        <button type="submit" class="btn btn-success" th:text="${isNew} ? 'Add' : 'Save'">Save</button>
+        <a th:href="@{/}" class="btn btn-primary">Cancel</a>
+    </form>
+</body>
+</html>

@@ -16,11 +16,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
+import ru.otus.hw.batch.cache.MongoIdRelationCache;
 import ru.otus.hw.jpa.models.Genre;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
@@ -37,13 +37,7 @@ public class GenreMigrationConfig {
 
     private final EntityManagerFactory entityManagerFactory;
 
-    private final Map<String, Genre> mapMongoIdToGenre = new HashMap<>();
-
-    @Bean
-    public Map<String, Genre> genreRelationsHolder() {
-        return mapMongoIdToGenre;
-    }
-
+    private final MongoIdRelationCache<Genre> mongoIdRelationCache;
 
     @Bean
     public Step genreMigrationStep() {
@@ -101,7 +95,7 @@ public class GenreMigrationConfig {
             delegate.write(new Chunk<>(authors));
 
             for (GenreMigrationItem item : chunk.getItems()) {
-                mapMongoIdToGenre.put(
+                mongoIdRelationCache.put(
                         item.mongoGenre().getId(),
                         item.jpaGenre()
                 );

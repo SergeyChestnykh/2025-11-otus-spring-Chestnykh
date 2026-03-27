@@ -64,7 +64,7 @@ class CommentRepositoryTest {
                 new Comment("2", "Second comment b1", expectedBook)
         );
 
-        var actualComments = commentRepository.findAllByBook_Id("1");
+        var actualComments = commentRepository.findAllByBookId("1");
 
         assertThat(actualComments)
                 .usingRecursiveComparison()

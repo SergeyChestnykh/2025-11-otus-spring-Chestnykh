@@ -16,12 +16,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
+import ru.otus.hw.batch.cache.MongoIdRelationCache;
 import ru.otus.hw.batch.converters.MongoJpaCommentConverter;
 import ru.otus.hw.jpa.models.Comment;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
@@ -40,12 +40,7 @@ public class CommentMigrationConfig {
 
     private final MongoJpaCommentConverter mongoJpaCommentConverter;
 
-    private final Map<String, Comment> mapMongoIdToComment = new HashMap<>();
-
-    @Bean
-    public Map<String, Comment> commentRelationsHolder() {
-        return mapMongoIdToComment;
-    }
+    private final MongoIdRelationCache<Comment> mongoIdRelationCache;
 
     @Bean
     public Step commentMigrationStep() {
@@ -99,7 +94,7 @@ public class CommentMigrationConfig {
             delegate.write(new Chunk<>(authors));
 
             for (CommentMigrationConfig.CommentMigrationItem item : chunk.getItems()) {
-                mapMongoIdToComment.put(
+                mongoIdRelationCache.put(
                         item.mongoComment().getId(),
                         item.jpaComment()
                 );

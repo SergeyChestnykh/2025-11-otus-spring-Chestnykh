@@ -10,9 +10,8 @@ import org.springframework.batch.test.JobRepositoryTestUtils;
 import org.springframework.batch.test.context.SpringBatchTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import ru.otus.hw.batch.cache.MongoIdRelationCache;
 import ru.otus.hw.jpa.models.Book;
-
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -27,7 +26,7 @@ class BookMigrationConfigTest {
     private JobRepositoryTestUtils jobRepositoryTestUtils;
 
     @Autowired
-    private Map<String, Book> bookRelationsHolder;
+    private MongoIdRelationCache<Book> mongoIdRelationCache;
 
     @BeforeEach
     void clearMetaData() {
@@ -45,7 +44,7 @@ class BookMigrationConfigTest {
         assertEquals(3, read);
         long written = jobExecution.getStepExecutions().stream().mapToLong(StepExecution::getWriteCount).sum();
         assertEquals(3, written);
-        assertEquals(3, bookRelationsHolder.size());
+        assertEquals(3, mongoIdRelationCache.getAll().size());
     }
 
 }

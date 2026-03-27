@@ -16,12 +16,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
+import ru.otus.hw.batch.cache.MongoIdRelationCache;
 import ru.otus.hw.batch.converters.MongoJpaBookConverter;
 import ru.otus.hw.jpa.models.Book;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
@@ -40,12 +40,7 @@ public class BookMigrationConfig {
 
     private final MongoJpaBookConverter mongoJpaBookConverter;
 
-    private final Map<String, Book> mapMongoIdToBook = new HashMap<>();
-
-    @Bean
-    public Map<String, Book> bookRelationsHolder() {
-        return mapMongoIdToBook;
-    }
+    private final MongoIdRelationCache<Book> mongoIdRelationCache;
 
     @Bean
     public Step bookMigrationStep() {
@@ -99,7 +94,7 @@ public class BookMigrationConfig {
             delegate.write(new Chunk<>(authors));
 
             for (BookMigrationItem item : chunk.getItems()) {
-                mapMongoIdToBook.put(
+                mongoIdRelationCache.put(
                         item.mongoBook().getId(),
                         item.jpaBook()
                 );

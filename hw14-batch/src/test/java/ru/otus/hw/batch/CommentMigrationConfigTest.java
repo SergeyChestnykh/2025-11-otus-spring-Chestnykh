@@ -10,9 +10,8 @@ import org.springframework.batch.test.JobRepositoryTestUtils;
 import org.springframework.batch.test.context.SpringBatchTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import ru.otus.hw.batch.cache.MongoIdRelationCache;
 import ru.otus.hw.jpa.models.Comment;
-
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -27,7 +26,7 @@ class CommentMigrationConfigTest {
     private JobRepositoryTestUtils jobRepositoryTestUtils;
 
     @Autowired
-    private Map<String, Comment> commentRelationsHolder;
+    private MongoIdRelationCache<Comment> mongoIdRelationCache;
 
     @BeforeEach
     void clearMetaData() {
@@ -46,7 +45,7 @@ class CommentMigrationConfigTest {
         assertEquals(3, read);
         long written = jobExecution.getStepExecutions().stream().mapToLong(StepExecution::getWriteCount).sum();
         assertEquals(3, written);
-        assertEquals(3, commentRelationsHolder.size());
+        assertEquals(3, mongoIdRelationCache.getAll().size());
     }
 
 }

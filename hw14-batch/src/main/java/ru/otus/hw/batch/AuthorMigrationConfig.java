@@ -18,11 +18,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
+import ru.otus.hw.batch.cache.MongoIdRelationCache;
 import ru.otus.hw.jpa.models.Author;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
@@ -39,12 +39,7 @@ public class AuthorMigrationConfig {
 
     private final EntityManagerFactory entityManagerFactory;
 
-    private final Map<String, Author> mapMongoIdToAuthor = new HashMap<>();
-
-    @Bean
-    public Map<String, Author> authorRelationsHolder() {
-        return mapMongoIdToAuthor;
-    }
+    private final MongoIdRelationCache<Author> cache;
 
 
     @Bean
@@ -57,7 +52,7 @@ public class AuthorMigrationConfig {
                 .listener(new ItemWriteListener<Author>() {
                     @Override
                     public void afterWrite(@NonNull Chunk<? extends Author> items) {
-                        System.out.println(mapMongoIdToAuthor);
+                        System.out.println(cache);
                         items.forEach(author -> {
                             System.out.println("authorId: " + author.getId());
                         });
@@ -113,7 +108,7 @@ public class AuthorMigrationConfig {
             delegate.write(new Chunk<>(authors));
 
             for (AuthorMigrationItem item : chunk.getItems()) {
-                mapMongoIdToAuthor.put(
+                cache.put(
                         item.mongoAuthor().getId(),
                         item.jpaAuthor()
                 );

@@ -9,9 +9,9 @@
     <version>1.0-SNAPSHOT</version>
 
     <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.2</version>
+        <groupId>ru.chestnykh</groupId>
+        <artifactId>2025-11-otus-spring-Chestnykh</artifactId>
+        <version>1.0</version>
     </parent>
 
     <properties>

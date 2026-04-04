@@ -7,8 +7,10 @@ import lombok.NoArgsConstructor;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public abstract class Insect {
-    protected int id;
-    protected boolean alive;
+public abstract class AbstractInsect {
+
+    private int id;
+
+    private boolean alive;
 }
 

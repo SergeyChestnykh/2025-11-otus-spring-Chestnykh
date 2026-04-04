@@ -5,8 +5,10 @@ import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public class Caterpillar extends Insect {
+public class Caterpillar extends AbstractInsect {
+
     private int length; // в мм
+
     private int leafCountEaten;
 
     public Caterpillar(int id, boolean alive, int length, int leafCountEaten) {

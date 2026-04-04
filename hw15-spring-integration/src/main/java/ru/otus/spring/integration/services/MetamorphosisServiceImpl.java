@@ -1,15 +1,14 @@
 package ru.otus.spring.integration.services;
 
-import java.util.*;
-import java.util.concurrent.ForkJoinPool;
-import java.util.stream.Collectors;
-
 import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Service;
-
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 import ru.otus.spring.integration.domain.Butterfly;
 import ru.otus.spring.integration.domain.Caterpillar;
+
+import java.util.Collection;
+import java.util.concurrent.ForkJoinPool;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j

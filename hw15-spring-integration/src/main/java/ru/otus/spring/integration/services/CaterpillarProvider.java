@@ -4,7 +4,11 @@ import org.apache.commons.lang3.RandomUtils;
 import org.springframework.stereotype.Service;
 import ru.otus.spring.integration.domain.Caterpillar;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 @Service

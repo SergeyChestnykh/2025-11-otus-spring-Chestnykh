@@ -5,10 +5,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.MessageChannelSpec;
 import org.springframework.integration.dsl.MessageChannels;
-import org.springframework.messaging.Message;
 import ru.otus.spring.integration.domain.Caterpillar;
-import ru.otus.spring.integration.domain.Chrysalis;
-import ru.otus.spring.integration.domain.Insect;
+import ru.otus.spring.integration.domain.AbstractInsect;
 import ru.otus.spring.integration.services.TransformationService;
 
 import java.util.List;
@@ -31,11 +29,11 @@ public class IntegrationConfig {
         return IntegrationFlow.from(caterpillarChannel())
                 .handle(List.class, (p, h) ->
                         ((List<Caterpillar>) p).stream()
-                                .filter(Insect::isAlive)
+                                .filter(AbstractInsect::isAlive)
                                 .map(transformationService::toChrysalis)
-                                .filter(Insect::isAlive)
+                                .filter(AbstractInsect::isAlive)
                                 .map(transformationService::toButterfly)
-                                .filter(Insect::isAlive)
+                                .filter(AbstractInsect::isAlive)
                                 .toList()
                 )
                 .channel(butterflyChannel())

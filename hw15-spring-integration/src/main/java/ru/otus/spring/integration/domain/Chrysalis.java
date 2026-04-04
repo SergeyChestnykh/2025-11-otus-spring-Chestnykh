@@ -5,8 +5,10 @@ import lombok.AllArgsConstructor;
 import java.time.LocalDate;
 
 @AllArgsConstructor
-public class Chrysalis extends Insect {
+public class Chrysalis extends AbstractInsect {
+
     private boolean isHardened;
+
     private LocalDate formedDate;
 
     public Chrysalis(int id, boolean alive, boolean isHardened, LocalDate formedDate) {

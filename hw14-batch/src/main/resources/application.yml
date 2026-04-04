@@ -1,0 +1,38 @@
+spring:
+  batch:
+    job:
+      enabled: true
+
+  data:
+    mongodb:
+      port: 0
+      database: company
+
+  datasource:
+    url: jdbc:h2:mem:maindb
+
+  jpa:
+    generate-ddl: false
+    hibernate:
+      ddl-auto: none
+
+logging:
+  level:
+    de.flapdoodle.embed.mongo.spring.autoconfigure.EmbeddedMongo: OFF
+    de.flapdoodle.embed.mongo.runtime.Mongod: OFF
+
+de:
+  flapdoodle:
+    mongodb:
+      embedded:
+        version: 6.0.5
+
+mongock:
+  #  runner-type: "ApplicationRunner" # default
+  runner-type: "InitializingBean"
+  change-logs-scan-package:
+    - ru.otus.hw.mongo.mongock.changelog
+  mongo-db:
+    write-concern:
+      journal: false
+    read-concern: local

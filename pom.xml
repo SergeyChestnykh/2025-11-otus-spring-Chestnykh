@@ -25,6 +25,7 @@
         <module>hw12-security</module>
         <module>hw13-security-authorisation</module>
         <module>hw14-batch</module>
+        <module>hw15-spring-integration</module>
     </modules>
 
 </project>

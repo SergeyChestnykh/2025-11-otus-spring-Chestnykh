@@ -10,6 +10,13 @@
 
     <packaging>pom</packaging>
 
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.7</version>
+        <relativePath/>
+    </parent>
+
     <modules>
         <module>hw01-xml-config</module>
         <module>hw02-annotation-config</module>
@@ -25,6 +32,7 @@
         <module>hw12-security</module>
         <module>hw13-security-authorisation</module>
         <module>hw14-batch</module>
+        <module>hw15-spring-integration</module>
     </modules>
 
 </project>

@@ -1,13 +1,14 @@
-package ru.otus.hw.actuator;
+package ru.otus.hw.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import ru.otus.hw.repositories.BookRepository;
 
 @RequiredArgsConstructor
-@Component
+@Service
 public class MyHealthIndicator implements HealthIndicator {
 
     private final BookRepository bookRepository;
@@ -15,7 +16,7 @@ public class MyHealthIndicator implements HealthIndicator {
     @Override
     public Health health() {
         try {
-            if (bookRepository.findAll().isEmpty()) {
+            if (bookRepository.existsBy()) {
                 return Health.up().build();
             } else {
                 return Health.down()

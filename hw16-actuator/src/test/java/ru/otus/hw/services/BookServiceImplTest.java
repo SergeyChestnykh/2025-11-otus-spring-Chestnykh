@@ -21,6 +21,8 @@ import java.util.Set;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
 @Import({
@@ -112,5 +114,16 @@ class BookServiceImplTest {
         } catch (EntityNotFoundException e) {
             assertEquals("Book with id 1 not found", e.getMessage());
         }
+    }
+
+    @Test
+    void isExists() {
+        assertTrue(bookService.isExists());
+    }
+
+    @Test
+    void isExists_false() {
+        bookService.findAll().forEach(book -> bookService.deleteById(book.id()));
+        assertFalse(bookService.isExists());
     }
 }

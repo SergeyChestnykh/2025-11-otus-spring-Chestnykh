@@ -15,4 +15,6 @@ public interface BookService {
     BookDto update(long id, String title, long authorId, Set<Long> genresIds);
 
     void deleteById(long id);
+
+    boolean isExists();
 }

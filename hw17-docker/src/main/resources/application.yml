@@ -1,9 +1,14 @@
 spring:
+#  datasource:
+#    url: jdbc:h2:mem:maindb
   datasource:
-    url: jdbc:h2:mem:maindb
-  sql:
-    init:
-      mode: always
+    # Эти свойства будут перегружены свойствами в docker-compose.yml
+    url: jdbc:postgresql://localhost:5432/db
+    username: postgres
+    password: postgres
+#  sql:
+#    init:
+#      mode: always
   jpa:
     generate-ddl: false
     #        generate-ddl: true

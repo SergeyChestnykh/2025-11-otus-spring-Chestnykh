@@ -1,5 +1,6 @@
 package ru.otus.hw.services;
 
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +29,7 @@ public class BookServiceImpl implements BookService {
 
     private final BookConverter bookConverter;
 
+    @Retry(name = "dbRetry")
     @Override
     @Transactional(readOnly = true)
     public BookDto findById(long id) {
@@ -37,6 +39,7 @@ public class BookServiceImpl implements BookService {
                 ));
     }
 
+    @Retry(name = "dbRetry")
     @Override
     @Transactional(readOnly = true)
     public List<BookDto> findAll() {
@@ -49,12 +52,14 @@ public class BookServiceImpl implements BookService {
         return save(0, title, authorId, genresIds);
     }
 
+    @Retry(name = "dbRetry")
     @Transactional
     @Override
     public BookDto update(long id, String title, long authorId, Set<Long> genresIds) {
         return save(id, title, authorId, genresIds);
     }
 
+    @Retry(name = "dbRetry")
     @Transactional
     @Override
     public void deleteById(long id) {

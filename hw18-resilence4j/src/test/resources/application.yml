@@ -18,5 +18,14 @@ spring:
 
 logging:
   level:
-    ROOT: ERROR
     ROOT: INFO
+
+resilience4j:
+  retry:
+    instances:
+      dbRetry:
+        maxAttempts: 4
+        waitDuration: 100ms
+        retryExceptions:
+          - org.springframework.dao.TransientDataAccessException
+          - java.sql.SQLTransientException

@@ -13,3 +13,13 @@ spring:
     hiddenmethod:
       filter:
         enabled: true
+
+resilience4j:
+  retry:
+    instances:
+      dbRetry:
+        maxAttempts: 3
+        waitDuration: 100ms
+        retryExceptions:
+          - org.springframework.dao.TransientDataAccessException
+          - java.sql.SQLTransientException

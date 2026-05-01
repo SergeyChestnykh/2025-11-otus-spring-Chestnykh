@@ -1,5 +1,6 @@
 package ru.otus.hw.services;
 
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,7 @@ public class CommentServiceImpl implements CommentService {
 
     private final BookRepository bookRepository;
 
+    @Retry(name = "dbRetry")
     @Override
     @Transactional(readOnly = true)
     public List<CommentDto> findAllForBook(long bookId) {
@@ -33,6 +35,7 @@ public class CommentServiceImpl implements CommentService {
                 .collect(Collectors.toList());
     }
 
+    @Retry(name = "dbRetry")
     @Override
     @Transactional
     public Optional<CommentDto> find(long id) {
@@ -52,6 +55,7 @@ public class CommentServiceImpl implements CommentService {
         return commentConverter.commentToDto(commentRepository.save(comment));
     }
 
+    @Retry(name = "dbRetry")
     @Override
     @Transactional
     public CommentDto update(long id, String text) {
@@ -62,6 +66,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
 
+    @Retry(name = "dbRetry")
     @Override
     @Transactional
     public void deleteById(long id) {

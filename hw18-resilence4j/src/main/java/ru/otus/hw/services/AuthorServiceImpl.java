@@ -1,5 +1,6 @@
 package ru.otus.hw.services;
 
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.otus.hw.converters.AuthorConverter;
@@ -16,6 +17,7 @@ public class AuthorServiceImpl implements AuthorService {
 
     private final AuthorConverter authorConverter;
 
+    @Retry(name = "dbRetry")
     @Override
     public List<AuthorDto> findAll() {
         return authorRepository.findAll().stream().map(authorConverter::authorToDto).collect(Collectors.toList());

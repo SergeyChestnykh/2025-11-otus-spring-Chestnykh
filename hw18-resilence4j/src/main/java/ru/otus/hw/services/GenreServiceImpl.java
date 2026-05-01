@@ -1,5 +1,6 @@
 package ru.otus.hw.services;
 
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.otus.hw.converters.GenreConverter;
@@ -18,6 +19,7 @@ public class GenreServiceImpl implements GenreService {
     private final GenreConverter genreConverter;
 
     @Override
+    @Retry(name = "dbRetry")
     public List<GenreDto> findAll() {
         return genreRepository.findAll().stream().map(genreConverter::genreToDto).collect(Collectors.toList());
     }

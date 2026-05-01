@@ -1,5 +1,6 @@
 package ru.otus.hw.services;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -7,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.otus.hw.converters.BookConverter;
 import ru.otus.hw.dto.BookDto;
 import ru.otus.hw.exceptions.EntityNotFoundException;
+import ru.otus.hw.exceptions.InsertEntityException;
 import ru.otus.hw.models.Book;
 import ru.otus.hw.repositories.AuthorRepository;
 import ru.otus.hw.repositories.BookRepository;
@@ -46,6 +48,7 @@ public class BookServiceImpl implements BookService {
         return bookRepository.findAll().stream().map(bookConverter::bookToDto).collect(Collectors.toList());
     }
 
+    @CircuitBreaker(name = "dbCircuitBreaker", fallbackMethod = "insertFallback")
     @Override
     @Transactional
     public BookDto insert(String title, long authorId, Set<Long> genresIds) {
@@ -81,5 +84,9 @@ public class BookServiceImpl implements BookService {
         var book = new Book(id, title, author, genres);
         Book savedBook = bookRepository.save(book);
         return bookConverter.bookToDto(savedBook);
+    }
+
+    private BookDto insertFallback(Throwable t) {
+        throw new InsertEntityException("Can't insert book.");
     }
 }

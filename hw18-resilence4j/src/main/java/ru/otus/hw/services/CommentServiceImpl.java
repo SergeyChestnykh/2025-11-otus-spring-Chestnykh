@@ -1,5 +1,6 @@
 package ru.otus.hw.services;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -7,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.otus.hw.converters.CommentConverter;
 import ru.otus.hw.dto.CommentDto;
 import ru.otus.hw.exceptions.EntityNotFoundException;
+import ru.otus.hw.exceptions.InsertEntityException;
 import ru.otus.hw.models.Book;
 import ru.otus.hw.models.Comment;
 import ru.otus.hw.repositories.BookRepository;
@@ -42,6 +44,7 @@ public class CommentServiceImpl implements CommentService {
         return commentRepository.findById(id).map(commentConverter::commentToDto);
     }
 
+    @CircuitBreaker(name = "dbCircuitBreaker", fallbackMethod = "insertFallback")
     @Override
     @Transactional
     public CommentDto insert(long bookId, String text) {
@@ -71,5 +74,9 @@ public class CommentServiceImpl implements CommentService {
     @Transactional
     public void deleteById(long id) {
         commentRepository.deleteById(id);
+    }
+
+    private CommentDto insertFallback(Throwable t) {
+        throw new InsertEntityException("Can't insert comment.");
     }
 }

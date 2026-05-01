@@ -35,6 +35,7 @@
         <module>hw15-spring-integration</module>
         <module>hw16-actuator</module>
         <module>hw17-docker</module>
+        <module>hw18-resilence4j</module>
     </modules>
 
 </project>

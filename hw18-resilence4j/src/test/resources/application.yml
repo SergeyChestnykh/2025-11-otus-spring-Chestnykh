@@ -1,0 +1,32 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+  sql:
+    init:
+      mode: embedded
+      continue-on-error: true
+      schema-locations: classpath:schema.sql
+      data-locations: classpath:data.sql
+
+  jpa:
+    generate-ddl: false
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+
+  flyway:
+    enabled: false
+
+logging:
+  level:
+    ROOT: INFO
+
+resilience4j:
+  retry:
+    instances:
+      dbRetry:
+        maxAttempts: 4
+        waitDuration: 100ms
+        retryExceptions:
+          - org.springframework.dao.TransientDataAccessException
+          - java.sql.SQLTransientException

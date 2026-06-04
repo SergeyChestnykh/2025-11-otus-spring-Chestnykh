@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Book Details</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        .book-info {
+            margin-bottom: 20px;
+        }
+
+        .genres {
+            color: #666;
+        }
+
+        .actions {
+            margin: 15px 0;
+        }
+
+        .btn {
+            padding: 5px 10px;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+
+        .btn-primary {
+            background: #2196F3;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #FF9800;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-success {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .comments {
+            margin-top: 20px;
+        }
+
+        .comment {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        .comment-form {
+            margin: 15px 0;
+            padding: 10px;
+            background: #f9f9f9;
+        }
+
+        input[type="text"] {
+            padding: 5px;
+            width: 300px;
+        }
+    </style>
+</head>
+<body>
+<!-- Book details container - rendered by JavaScript -->
+<div id="book-container">
+    <p>Loading...</p>
+</div>
+
+<div class="comments">
+    <h3>Comments</h3>
+
+    <!-- Add new comment form -->
+    <div class="comment-form">
+        <input type="text" id="commentText" placeholder="Enter your comment" required>
+        <button type="button" id="addCommentBtn">
+            Add Comment
+        </button>
+    </div>
+
+    <!-- Comments list -->
+    <div id="comments-container"></div>
+    <p id="no-comments" style="display:none;">No comments yet.</p>
+</div>
+
+<script>
+    // Get book ID from URL path (format: /book/{id})
+    const pathParts = window.location.pathname.split('/');
+    const bookId = parseInt(pathParts[pathParts.length - 1], 10);
+
+    document.addEventListener('DOMContentLoaded', function () {
+        loadBook(bookId);
+        loadComments(bookId);
+
+        // Set up add comment button
+        document.getElementById('addCommentBtn').addEventListener('click', function () {
+            addComment(bookId);
+        });
+    })
+
+    function loadBook(id) {
+        fetch(`/api/book/${id}`)
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return res.json();
+            })
+            .then(book => {
+                renderBook(book);
+            })
+            .catch(err => {
+                console.error('Error loading book:', err);
+                document.getElementById('book-container').innerHTML = '<p>Error loading book details</p>';
+            });
+    }
+
+    function renderBook(book) {
+        const container = document.getElementById('book-container');
+        const genres = book.genres.map(g => g.name).join(', ');
+
+        container.innerHTML = `
+            <h1>${escapeHtml(book.title)}</h1>
+            
+            <div class="book-info">
+                <p><strong>Author:</strong> <span>${escapeHtml(book.author.fullName)}</span></p>
+                <p class="genres">
+                    <strong>Genres:</strong>
+                    <span>${escapeHtml(genres)}</span>
+                </p>
+            </div>
+            
+            <div class="actions">
+                <a href="/" class="btn btn-primary">Home</a>
+                <a href="/book/${book.id}/edit" class="btn btn-warning">Edit</a>
+                <button type="button" class="btn btn-danger" onclick="deleteBook(${book.id})">Delete</button>
+            </div>
+        `;
+    }
+
+    function deleteBook(id) {
+        if (!confirm('Delete this book?')) return;
+        fetch(`/api/book/${id}`, {
+            method: 'DELETE'
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error('Delete error');
+            }
+            window.location.href = '/';
+        }).catch(err => {
+            console.error('Error deleting book:', err);
+            alert('Failed to delete book');
+        });
+    }
+
+    function loadComments(id) {
+        fetch(`/api/book/${id}/comments`)
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return res.json();
+            })
+            .then(comments => {
+                renderComments(comments, id);
+            })
+            .catch(err => {
+                console.error('Error loading comments:', err);
+                alert('Failed to load comments');
+            });
+    }
+
+    function renderComments(comments, bookId) {
+        const container = document.getElementById('comments-container');
+        const noComments = document.getElementById('no-comments');
+
+        if (!comments || comments.length === 0) {
+            container.innerHTML = '';
+            noComments.style.display = 'block';
+            return;
+        }
+
+        noComments.style.display = 'none';
+        container.innerHTML = comments.map(c => `
+            <div class="comment">
+                <p>${escapeHtml(c.text)}</p>
+                <div>
+                    <button type="button" class="btn btn-danger" onclick="deleteComment(${bookId}, ${c.id})">Delete</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function deleteComment(bookId, commentId) {
+        if (!confirm('Delete comment?')) return;
+        fetch(`/api/comments/${commentId}`, {
+            method: 'DELETE'
+        }).then(
+            response => {
+                if (!response.ok) {
+                    throw new Error('Delete error');
+                }
+                loadComments(bookId)
+            }
+        )
+    }
+
+    async function addComment(bookId) {
+        const textInput = document.getElementById('commentText');
+        const text = textInput.value.trim();
+
+        if (!text) {
+            alert('Please enter a comment');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/book/${bookId}/comments`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({text})
+            });
+
+            if (!response.ok) {
+                throw new Error('Add comment error');
+            }
+
+            textInput.value = '';
+            await loadComments(bookId);
+        } catch (error) {
+            console.error(error);
+            alert('Comment not added');
+        }
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+</script>
+</body>
+</html>

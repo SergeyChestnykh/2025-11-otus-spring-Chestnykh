@@ -1,0 +1,9 @@
+https://habr.com/ru/articles/114649/
+https://www.baeldung.com/spring-aop-pointcut-tutorial
+https://habr.com/ru/articles/347752/
+https://youtu.be/BmBr5diz8WA?si=XsOGoJoZ2SvAUCIk
+https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/core.html#aop
+https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/core.html#aop-pointcuts
+https://howtodoinjava.com/spring-aop/aspectj-pointcut-expressions/
+https://www.baeldung.com/spring-aop-vs-aspectj
+https://www.baeldung.com/aspectj
